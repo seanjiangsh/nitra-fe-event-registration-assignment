@@ -165,3 +165,85 @@ store, with NO inline validation (S1.noInline) — rules fire on Step 4.
 - **Scope note**: the full pixel-fidelity audit is still stage 9; these were
   shared-chrome / structural fixes worth folding in now since every later step
   builds on them.
+
+### Stage 5 · Step 2 session selection
+
+**Prompt**: group sessions by day with a day switcher, multi-select cards,
+sold-out disabled, capacity bar, "N selected"; time-conflicts deferred to Step 4.
+
+**Claude (first pass)**
+
+- **Worked**: `useDateTime` (one-time `Intl` formatters, `timeZone: 'UTC'`) —
+  verified `9:00 AM` even under `TZ=Asia/Taipei`, so the §6.1 UTC rule holds.
+  `SessionCard` is a `role="checkbox"` multi-select showing track badge, UTC time
+  range, and remaining spots, with a capacity bar colored green→olive→red by fill
+  (§10.1). Sold-out cards (`registered >= capacity`) are genuinely `disabled`, not
+  just labelled (S2.3). `Step2` groups `SESSIONS` by UTC date and adds a day
+  switcher with a per-day selected-count badge.
+- **Reused the extracted `Badge`** for the track pills (Keynote / Frontend /
+  Backend / DevOps) and the Sold-out pill — the stage-4 review's payoff.
+- **Verified in-browser**: grouping (6 + 6), sold-out s2 (120/120) and s9 (90/90)
+  disabled and non-interactive, multi-select toggles persist (`[s1, s4]` →
+  "2 selected", day-1 tab badge "2"), capacity colors (62% green / 89% olive /
+  100% red), UTC times, clean console, type-clean.
+- **Held S2.2**: overlapping selections are allowed here (e.g. s2/s3) and will be
+  flagged only at the Step 4 submit check — not blocked at selection.
+- **Token discipline**: swapped an initial `bg-[rgba(255,255,255,…)]` count-badge
+  fill for a token pair (`bg-surface-l0 text-brand-emphasis`) — no hardcoded
+  colors.
+
+**Human review (caught — design + capacity semantics)**
+
+- **Day switcher → segmented control** (design capture): both days sit in one
+  light `bg-surface-l2` container, active is a filled `bg-brand-emphasis-rest`
+  pill. Dropped the per-tab count badges and added a standalone
+  "N sessions selected" line (brand-colored, singular/plural aware); removed the
+  now-unused `selectedOnDay` helper.
+- **No Sold-out badge**: removed the pill; "Sold out" now appears only as the
+  spots-left text.
+- **Capacity counts the attendee's own reservation.** Selecting a session drops
+  its "spots left" by one and nudges the bar (verified s3 22→21, 78%→79%). The key
+  subtlety: a session the attendee has selected is *never* grayed — if their pick
+  takes the last seat it reads "Sold out" but stays interactive so they can
+  deselect. A card is disabled/dimmed only when full *and not* their pick
+  (`baseFull && !selected`), so s2 (120/120) and s9 (90/90) stay non-interactive.
+
+### Cross-cutting · Sticky app-shell + Quasar component reuse
+
+**Human review (caught)**
+
+- **Sticky header/footer, scrollable main.** Reworked `WizardLayout` into an app
+  shell: `h-screen` + `overflow-hidden` frame, `shrink-0` header/footer, and
+  `flex-1 overflow-y-auto` on `<main>` as the only scroll region, with its
+  `scrollTop` reset to 0 on each step change. Verified: scrolling main keeps the
+  header at top 0 and the footer fixed, and the window itself never scrolls.
+- **Cards: tried `q-card`, then extracted a custom `BaseCard`.** First converted
+  `TicketCard` / `SessionCard` to `<q-card flat>` — but it needed `!rounded-xl`
+  (beat Quasar's 4px), `flat` (kill its Material shadow), plus custom border and
+  manual `@keydown` handlers, i.e. q-card was fully overridden and added nothing.
+  When the exact card spec came in (6px radius, 1px neutral / 2px brand border,
+  resting `0 1px 3px #0000000A` + hover `0 4px 16px #00000014` shadows) I took the
+  "if q-card doesn't fit, restore to custom" path and extracted a `BaseCard`
+  wrapper owning that shared shell. It renders a native `<button>` (interactive
+  ticket/session — keyboard/focus a11y for free, no keydown handlers) or a `<div>`
+  (non-interactive, e.g. a merch card that owns its own steppers). Verified exact:
+  6px radius, 2px `rgb(38,77,79)` selected / 1px `rgb(227,230,232)` border, resting
+  shadow, click+keyboard select, disabled no-op. Dropped the earlier selected
+  `bg-brand-subtle` tint since the spec lists only border/radius/shadow.
+- **No-shift-on-select fix (caught).** A real CSS border still changed the content
+  box 1px↔2px on select, nudging inner content. Redrew the border as an **inset
+  `box-shadow` ring** (which takes no layout space) composed with the drop shadow
+  via two custom props — `--card-ring` (1px neutral → 2px brand on `is-selected`)
+  and `--card-elevation` (resting → hover) — and zeroed the native `<button>`'s UA
+  border (`appearance-none border-0`, which was the visible-border culprit).
+  Verified: `border-width: 0`, ring 1px→2px, and inner-content shift **0px** on
+  both card types.
+- **Where I held custom (judgment).** `Badge` and `TextField` stay custom: a
+  Quasar `q-chip`/`q-badge` maps to Quasar's palette, not our CSS-var tokens (it
+  would need `!important` overrides to stay on-token), and `q-input`'s in-field
+  label fights the design's label-above + external `<label for>` association. The
+  higher-value Quasar wins are behavioral/structural and land in the
+  display-heavy stages: `q-list`/`q-item` + `q-card` for the order summary and
+  review (6–7), `q-banner` for the shipping alert (6), `q-timeline` for the review
+  session list (7), and `q-input` reconsidered there for its built-in error/hint
+  states. Building those Quasar-first.

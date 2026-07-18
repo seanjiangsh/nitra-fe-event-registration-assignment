@@ -1,35 +1,84 @@
 <script setup>
 /**
- * Step 2 — Session Selection. Stage 3 stub. The `day` ref below is deliberate
- * step-local UI state used to verify `<keep-alive>`: pick a day, navigate away
- * and back, and the selection survives because the layout keeps this instance
- * alive. Real session cards, grouping, and capacity arrive in stage 5.
+ * Step 2 — Session Selection (S2). Sessions grouped by UTC date (S2.1) with a
+ * day switcher; each card is multi-select. Overlapping selections are allowed
+ * here and flagged only at Step 4 submit (S2.2). Sold-out sessions are disabled
+ * (S2.3). The active day is step-local UI state preserved by `<keep-alive>`.
  */
-import { ref } from 'vue'
-import { EVENT } from '../../data.js'
+import { ref, computed } from "vue";
+import { useRegistration } from "../../composables/useRegistration.js";
+import { SESSIONS, EVENT } from "../../data.js";
+import { formatDayShort } from "../../composables/useDateTime.js";
+import SessionCard from "../../components/cards/SessionCard.vue";
 
-const day = ref(EVENT.dates[0])
+const { registration } = useRegistration();
+
+const activeDay = ref(EVENT.dates[0]);
+
+/** Sessions grouped by their UTC date (`YYYY-MM-DD`), in event-day order. */
+const sessionsByDay = computed(() => {
+  /** @type {Record<string, import('../../types.js').Session[]>} */
+  const groups = {};
+  for (const day of EVENT.dates) groups[day] = [];
+  for (const session of SESSIONS) {
+    const day = session.date.slice(0, 10);
+    if (groups[day]) groups[day].push(session);
+  }
+  return groups;
+});
+
+const daySessions = computed(() => sessionsByDay.value[activeDay.value] ?? []);
+const selectedCount = computed(() => registration.selectedSessionIds.length);
+
+/** @param {string} id */
+function toggleSession(id) {
+  const ids = registration.selectedSessionIds;
+  const i = ids.indexOf(id);
+  if (i === -1) ids.push(id);
+  else ids.splice(i, 1);
+}
 </script>
 
 <template>
-  <section>
-    <h1 class="text-h3 text-neutral m-0 mb-1">Sessions</h1>
-    <p class="text-md text-neutral-muted m-0 mb-4">Step 2 of 4 — choose your sessions.</p>
+  <section class="flex flex-col gap-6">
+    <header class="flex items-end justify-between gap-4">
+      <h2 class="text-h3 text-neutral m-0">Select Sessions</h2>
+    </header>
 
-    <div class="flex gap-2">
+    <!-- Day switcher (segmented control) -->
+    <div
+      role="tablist"
+      aria-label="Conference day"
+      class="inline-flex w-fit gap-1 p-1 rounded-xl bg-surface-l2"
+    >
       <button
-        v-for="d in EVENT.dates"
-        :key="d"
+        v-for="day in EVENT.dates"
+        :key="day"
         type="button"
-        class="px-3 py-2 rounded-lg text-md font-medium border border-solid cursor-pointer transition-colors"
-        :class="d === day ? 'bg-brand-emphasis-rest text-inverse border-brand-emphasis' : 'bg-surface-l0 text-neutral border-neutral-muted'"
-        @click="day = d"
+        role="tab"
+        :aria-selected="day === activeDay"
+        class="px-6 py-2 rounded-lg text-md font-semibold transition-colors"
+        :class="day === activeDay ? 'bg-brand-emphasis-rest text-inverse' : 'text-neutral-muted hover:text-neutral'"
+        @click="activeDay = day"
       >
-        {{ d }}
+        {{ formatDayShort(day) }}
       </button>
     </div>
-    <p class="text-sm text-neutral-quiet mt-3">
-      (Placeholder day tabs — keep-alive check. Selected day survives navigation. Session cards come in stage 5.)
+
+    <!-- Selected count -->
+    <p class="text-md font-semibold text-brand-emphasis m-0">
+      {{ selectedCount }} {{ selectedCount === 1 ? 'session' : 'sessions' }} selected
     </p>
+
+    <!-- Session grid -->
+    <div class="grid grid-cols-2 gap-4">
+      <SessionCard
+        v-for="session in daySessions"
+        :key="session.id"
+        :session="session"
+        :selected="registration.selectedSessionIds.includes(session.id)"
+        @toggle="toggleSession(session.id)"
+      />
+    </div>
   </section>
 </template>

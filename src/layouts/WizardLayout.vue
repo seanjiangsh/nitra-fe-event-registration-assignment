@@ -10,6 +10,8 @@
  * derived from the step-index delta). Motion is intentionally light here; the
  * easing/animation polish is stage 10.
  */
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { provideRegistration } from '../composables/useRegistration.js'
 import { EVENT } from '../data.js'
 import StepperHeader from '../components/ui/StepperHeader.vue'
@@ -17,6 +19,18 @@ import WizardFooter from '../components/ui/WizardFooter.vue'
 
 // Create + provide the store once, here at the shell root (§4).
 provideRegistration()
+
+const route = useRoute()
+
+// The header and footer are sticky (fixed height); only <main> scrolls. Reset
+// its scroll to the top on every step change so a new step starts at the top.
+const scrollMain = ref(/** @type {HTMLElement | null} */ (null))
+watch(
+  () => route.path,
+  () => {
+    if (scrollMain.value) scrollMain.value.scrollTop = 0
+  },
+)
 
 /**
  * Direction-aware transition name for a step route. The router guard stashes it
@@ -37,27 +51,31 @@ function onSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-surface-l1 flex flex-col">
-    <header class="bg-surface-l0 border-b border-solid border-neutral-muted">
+  <!-- App shell: fixed viewport height, header + footer sticky, only <main>
+       scrolls (h-screen + overflow-hidden on the frame). -->
+  <div class="h-screen bg-surface-l1 flex flex-col overflow-hidden">
+    <header class="shrink-0 bg-surface-l0 border-b border-solid border-neutral-muted">
       <div class="mx-auto max-w-[1200px] w-full px-6 py-4 flex flex-col gap-4">
         <h1 class="text-subtitle1 text-brand-emphasis m-0">{{ EVENT.name }}</h1>
         <StepperHeader />
       </div>
     </header>
 
-    <!-- The order summary is not layout chrome — it lives inside Step 3 only
-         (per the design), so the shell is a single centered column. -->
-    <main class="mx-auto max-w-[1120px] w-full px-6 py-8 flex-1">
-      <router-view v-slot="{ Component, route }">
-        <transition :name="transitionName(route)" mode="out-in">
-          <keep-alive>
-            <component :is="Component" :key="route.name" />
-          </keep-alive>
-        </transition>
-      </router-view>
+    <!-- Only scrollable region. The order summary is not layout chrome — it
+         lives inside Step 3 only, so the shell is a single centered column. -->
+    <main ref="scrollMain" class="flex-1 overflow-y-auto">
+      <div class="mx-auto max-w-[1120px] w-full px-6 py-8">
+        <router-view v-slot="{ Component, route: r }">
+          <transition :name="transitionName(r)" mode="out-in">
+            <keep-alive>
+              <component :is="Component" :key="r.name" />
+            </keep-alive>
+          </transition>
+        </router-view>
+      </div>
     </main>
 
-    <footer class="bg-surface-l0 border-t border-solid border-neutral-muted">
+    <footer class="shrink-0 bg-surface-l0 border-t border-solid border-neutral-muted">
       <div class="mx-auto max-w-[1200px] w-full px-6 py-4">
         <WizardFooter @submit="onSubmit" />
       </div>

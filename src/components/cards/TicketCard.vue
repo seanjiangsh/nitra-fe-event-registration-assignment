@@ -1,15 +1,16 @@
 <script setup>
 /**
  * Single ticket option. Single-select is owned by the parent (Step 1 binds the
- * chosen id); this card is presentational + emits `select`. Rendered as a real
- * `role="radio"` button inside the parent's radiogroup, so it's keyboard- and
- * screen-reader-operable for free (§10.4).
+ * chosen id); this card is presentational + emits `select`. The shared shell
+ * (radius / border / shadow / a11y) lives in `BaseCard`; here we set the
+ * `radio` role and the ticket content.
  *
  * @typedef {Object} TicketCardProps
  * @property {import('../../types.js').Ticket} ticket
  * @property {boolean} selected
  */
 import { format } from '../../composables/useCurrency.js'
+import BaseCard from '../ui/BaseCard.vue'
 import Badge from '../ui/Badge.vue'
 import PerkCheckIcon from '../icons/PerkCheckIcon.vue'
 
@@ -26,18 +27,7 @@ defineEmits(['select'])
 </script>
 
 <template>
-  <button
-    type="button"
-    role="radio"
-    :aria-checked="selected"
-    class="flex flex-col text-left gap-3 p-4 rounded-xl border-2 border-solid cursor-pointer transition-colors bg-surface-l0"
-    :class="
-      selected
-        ? 'border-brand-emphasis bg-brand-subtle-rest'
-        : 'border-neutral-muted hover:border-neutral-emphasis'
-    "
-    @click="$emit('select')"
-  >
+  <BaseCard :selected="selected" role="radio" @select="$emit('select')">
     <div class="flex items-baseline justify-between gap-2">
       <span class="text-subtitle1 text-neutral">{{ ticket.name }}</span>
       <span class="text-h4 text-brand-emphasis">{{ format(ticket.price) }}</span>
@@ -60,5 +50,5 @@ defineEmits(['select'])
         Selected
       </Badge>
     </div>
-  </button>
+  </BaseCard>
 </template>

@@ -7,7 +7,8 @@
  * Full class strings are listed literally in `VARIANTS` so UnoCSS's scanner
  * picks them up (dynamically-built class names would not be generated).
  *
- * @typedef {'brand' | 'neutral' | 'success' | 'danger' | 'info' | 'warning' | 'accent'} BadgeVariant
+ * Variant type lives in `types.js` so callers (e.g. `SessionCard`) can annotate
+ * against the same union.
  */
 
 /** @type {Record<string, string>} */
@@ -23,7 +24,7 @@ const VARIANTS = {
 
 const props = defineProps({
   variant: {
-    type: /** @type {import('vue').PropType<BadgeVariant>} */ (String),
+    type: /** @type {import('vue').PropType<import('../../types.js').BadgeVariant>} */ (String),
     default: 'neutral',
   },
 })

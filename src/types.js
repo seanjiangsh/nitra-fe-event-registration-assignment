@@ -155,4 +155,10 @@
  * @property {string} message
  */
 
+/**
+ * Semantic color variant shared by the `Badge` component and its callers
+ * (ticket "Selected", session track / status pills).
+ * @typedef {'brand' | 'neutral' | 'success' | 'danger' | 'info' | 'warning' | 'accent'} BadgeVariant
+ */
+
 export {}
