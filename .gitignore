@@ -3,3 +3,12 @@ dist
 .quasar
 *.local
 .DS_Store
+
+# Yarn 4 (node-modules linker): ignore cache/state, keep vendored dirs
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
