@@ -101,3 +101,67 @@ transition via `route.meta` + `:key`; `sanitize` decomposed into named helpers +
 module-level lookups; `isPresent` guard unifying the selection computeds. No new
 dependencies. Src type-clean (only the pre-existing implicit-`any` in the provided
 `unocss/index.js` remains, untouched).
+
+### Stage 4 · Step 1 attendee info + ticket cards
+
+**Prompt**: six attendee fields + three single-select ticket cards, bound to the
+store, with NO inline validation (S1.noInline) — rules fire on Step 4.
+
+**Claude (first pass)**
+
+- **Worked**: built two reusable components that carry the EC1 Vue-pattern signal
+  in their JS form — `TextField` two-way binds via `defineModel({ type, default })`,
+  `TicketCard` uses runtime `defineProps` typed with a JSDoc `PropType` cast +
+  `defineEmits(['select'])`. Step 1 wires the three cards as a `role="radiogroup"`
+  single-select bound to `registration.ticketTypeId` and the six fields to
+  `registration.attendee`.
+- **Verified in-browser**: selecting a ticket flips `aria-checked` (only one true),
+  updates the live summary and persisted `ticketTypeId`, and switching VIP→General
+  moved the total 599→299; field input persists to localStorage; type-clean; a
+  fresh dev-server load has a clean console.
+- **Held the line on S1.noInline**: fields only capture input — no error state is
+  rendered yet (added in stage 7). The shipping field carries a _hint_ ("required
+  only if you order merch"), which is guidance, not a validation error.
+
+**Human review (caught — full design capture supplied)**
+
+- **Order summary belongs to Step 3 only**, not the shell. Moved it out of
+  `WizardLayout` (which is now a single centered column); it will be rendered
+  inside `Step3Addons` in stage 6.
+- **Prefer built-in icons; fall back to inline SVG only when the design truly
+  differs.** `@quasar/extras` ships `material-icons` (2122 names in
+  `material-icons/icons.json`; browse fonts.google.com/icons) and it's loaded, so
+  `<q-icon name="…">` covers most needs. I over-applied this and deleted the perk
+  SVG — but the perk check differs from `check_circle` in both color and shape, so
+  it came back as an inline `PerkCheckIcon` component fed the exact Figma export
+  (colorable via `currentColor` when the asset uses it). Lesson: built-in first,
+  but a bespoke glyph is a legit inline-SVG case.
+- **Extracted a reusable `Badge` component** (variant → semantic token pair via a
+  static class map so UnoCSS's scanner emits the classes). Used now for the
+  "Selected" affordance on `TicketCard`; reused in stage 5 for session track /
+  status badges (KEYNOTE, SOLD OUT, …).
+- **Primary CTA is accent (orange), not brand (teal).** The design's Next/Submit
+  buttons are orange even though §3 wires `--q-primary` to brand — the buttons are
+  custom-styled, so the footer now uses `bg-accent-emphasis-*`, is labelled
+  "Next: <next step>" / "Submit Registration", and its Back is a ghost button
+  omitted on the first step.
+
+**Human review (round 2 — design fitting)**
+
+- **Reserve the "Selected" badge height so selecting never shifts layout.** Every
+  card always renders a fixed-height (`min-h-6`) badge slot pinned to the bottom
+  (`mt-auto`); the badge only toggles inside it. Verified the three cards stay
+  256px before and after selecting. `mt-auto` also bottom-aligns the badge across
+  cards with different perk counts.
+- **Duplicate form-field id — real root cause in `index.html`.** The starter
+  hand-wrote `<div id="q-app">` *and* kept the `<!-- quasar:entry-point -->`
+  marker, so Quasar injected a *second* mount point; when both rendered the form,
+  every input id duplicated (Chrome autofill warning). Removed the manual div →
+  single `#q-app`, zero duplicate ids in the DOM.
+- **Typography + layout tweaks**: section headings to `text-subtitle1` /
+  `text-h3` (Attendee Information as a semantic `<h3>` so the header stays the sole
+  `<h1>`); Job Title and Shipping Address span full width (`col-span-2`) on their
+  own rows.
+- **Scope note**: the full pixel-fidelity audit is still stage 9; these were
+  shared-chrome / structural fixes worth folding in now since every later step
+  builds on them.

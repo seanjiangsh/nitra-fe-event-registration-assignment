@@ -14,7 +14,6 @@ import { provideRegistration } from '../composables/useRegistration.js'
 import { EVENT } from '../data.js'
 import StepperHeader from '../components/ui/StepperHeader.vue'
 import WizardFooter from '../components/ui/WizardFooter.vue'
-import OrderSummary from '../components/ui/OrderSummary.vue'
 
 // Create + provide the store once, here at the shell root (§4).
 provideRegistration()
@@ -46,20 +45,16 @@ function onSubmit() {
       </div>
     </header>
 
-    <main class="mx-auto max-w-[1200px] w-full px-6 py-8 flex-1 flex gap-8 items-start">
-      <div class="flex-1 min-w-0">
-        <router-view v-slot="{ Component, route }">
-          <transition :name="transitionName(route)" mode="out-in">
-            <keep-alive>
-              <component :is="Component" :key="route.name" />
-            </keep-alive>
-          </transition>
-        </router-view>
-      </div>
-
-      <div class="w-80 shrink-0">
-        <OrderSummary />
-      </div>
+    <!-- The order summary is not layout chrome — it lives inside Step 3 only
+         (per the design), so the shell is a single centered column. -->
+    <main class="mx-auto max-w-[1120px] w-full px-6 py-8 flex-1">
+      <router-view v-slot="{ Component, route }">
+        <transition :name="transitionName(route)" mode="out-in">
+          <keep-alive>
+            <component :is="Component" :key="route.name" />
+          </keep-alive>
+        </transition>
+      </router-view>
     </main>
 
     <footer class="bg-surface-l0 border-t border-solid border-neutral-muted">

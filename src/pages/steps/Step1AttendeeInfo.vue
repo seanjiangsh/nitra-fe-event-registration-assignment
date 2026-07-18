@@ -1,29 +1,95 @@
 <script setup>
 /**
- * Step 1 — Attendee Info. Stage 3 stub: proves the store binding and
- * persistence wiring with a single live field. The full 6-field form + ticket
- * cards + deferred validation arrive in stage 4.
+ * Step 1 — Attendee Info (S1). Three single-select ticket cards bound to
+ * `registration.ticketTypeId`, plus the six attendee fields bound to
+ * `registration.attendee`. No inline validation (S1.noInline): fields simply
+ * capture input; all rules fire on Step 4 submit (stage 7).
  */
-import { useRegistration } from '../../composables/useRegistration.js'
+import { useRegistration } from "../../composables/useRegistration.js";
+import { TICKETS } from "../../data.js";
+import TicketCard from "../../components/cards/TicketCard.vue";
+import TextField from "../../components/ui/TextField.vue";
 
-const { registration } = useRegistration()
+const { registration } = useRegistration();
+
+/** @param {string} id */
+function selectTicket(id) {
+  registration.ticketTypeId = id;
+}
 </script>
 
 <template>
-  <section>
-    <h1 class="text-h3 text-neutral m-0 mb-1">Attendee Info</h1>
-    <p class="text-md text-neutral-muted m-0 mb-4">Step 1 of 4 — tell us who's attending.</p>
+  <section class="flex flex-col gap-8">
+    <!-- Ticket selection (single-select) -->
+    <div class="flex flex-col gap-3">
+      <h2 class="text-subtitle1 text-neutral m-0">Select Ticket Type</h2>
+      <div
+        role="radiogroup"
+        aria-label="Ticket type"
+        class="grid grid-cols-3 gap-4"
+      >
+        <TicketCard
+          v-for="ticket in TICKETS"
+          :key="ticket.id"
+          :ticket="ticket"
+          :selected="registration.ticketTypeId === ticket.id"
+          @select="selectTicket(ticket.id)"
+        />
+      </div>
+    </div>
 
-    <label class="block text-md font-medium text-neutral mb-1" for="fullName">Full name</label>
-    <input
-      id="fullName"
-      v-model="registration.attendee.fullName"
-      type="text"
-      placeholder="Ada Lovelace"
-      class="w-full max-w-96 px-3 py-2 rounded-lg border border-solid border-neutral-muted text-md text-neutral bg-surface-l0"
-    />
-    <p class="text-sm text-neutral-quiet mt-2">
-      (Placeholder field — full form comes in stage 4. Type here, navigate away and back, or refresh to see state preserved.)
-    </p>
+    <!-- Attendee details -->
+    <div class="flex flex-col gap-3">
+      <h3 class="text-h3 text-neutral m-0">Attendee Information</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <TextField
+          id="fullName"
+          v-model="registration.attendee.fullName"
+          label="Full name"
+          autocomplete="name"
+          placeholder="Ada Lovelace"
+        />
+        <TextField
+          id="email"
+          v-model="registration.attendee.email"
+          label="Email"
+          type="email"
+          autocomplete="email"
+          placeholder="ada@example.com"
+        />
+        <TextField
+          id="phone"
+          v-model="registration.attendee.phone"
+          label="Phone"
+          type="tel"
+          autocomplete="tel"
+          placeholder="(415) 555-2671"
+        />
+        <TextField
+          id="company"
+          v-model="registration.attendee.company"
+          label="Company"
+          autocomplete="organization"
+          placeholder="Analytical Engines Ltd."
+        />
+        <TextField
+          id="jobTitle"
+          v-model="registration.attendee.jobTitle"
+          class="col-span-2"
+          label="Job title"
+          autocomplete="organization-title"
+          placeholder="Software Engineer"
+        />
+        <TextField
+          id="shippingAddress"
+          v-model="registration.attendee.shippingAddress"
+          class="col-span-2"
+          label="Shipping address (optional)"
+          autocomplete="street-address"
+          placeholder="1234 Innovation Blvd, San Francisco, CA"
+          hint="Required only if you order merchandise on the Add-ons step."
+        />
+      </div>
+    </div>
   </section>
 </template>

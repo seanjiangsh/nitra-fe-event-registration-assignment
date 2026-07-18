@@ -20,6 +20,9 @@ const index = computed(() => stepIndex(route.path))
 const isFirst = computed(() => index.value === 0)
 const isLast = computed(() => index.value === STEPS.length - 1)
 
+/** Label of the next step, for the "Next: …" CTA. */
+const nextLabel = computed(() => STEPS[index.value + 1]?.label ?? '')
+
 function back() {
   if (!isFirst.value) router.push(STEPS[index.value - 1].path)
 }
@@ -35,26 +38,24 @@ function next() {
 
 <template>
   <div class="flex items-center justify-between">
+    <!-- Back: ghost button, omitted on the first step (nothing to go back to). -->
     <button
+      v-if="!isFirst"
       type="button"
-      class="px-4 py-2 rounded-lg text-md font-semibold border border-solid transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-      :class="
-        isFirst
-          ? 'border-neutral-muted text-neutral-muted'
-          : 'border-neutral-emphasis text-neutral bg-surface-l0 hover:bg-neutral-subtle-hover cursor-pointer'
-      "
-      :disabled="isFirst"
+      class="px-5 py-2 rounded-lg text-md font-semibold border border-solid border-neutral-muted text-neutral bg-surface-l0 cursor-pointer transition-colors hover:bg-neutral-subtle-hover hover:border-neutral-emphasis"
       @click="back"
     >
       Back
     </button>
+    <span v-else aria-hidden="true"></span>
 
+    <!-- Primary CTA: accent, labelled with the next step (or submit on review). -->
     <button
       type="button"
-      class="px-5 py-2 rounded-lg text-md font-semibold border-none text-inverse cursor-pointer transition-colors bg-brand-emphasis-rest hover:bg-brand-emphasis-hover active:bg-brand-emphasis-active"
+      class="px-5 py-2 rounded-lg text-md font-semibold border-none text-inverse cursor-pointer transition-colors bg-accent-emphasis-rest hover:bg-accent-emphasis-hover active:bg-accent-emphasis-active"
       @click="next"
     >
-      {{ isLast ? 'Submit Registration' : 'Next' }}
+      {{ isLast ? 'Submit Registration' : `Next: ${nextLabel}` }}
     </button>
   </div>
 </template>
