@@ -3,6 +3,7 @@
     "checkJs": true,
     "strict": true,
     "module": "esnext",
+    "moduleResolution": "bundler",
     "target": "esnext",
     "baseUrl": "."
   },
