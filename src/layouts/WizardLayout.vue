@@ -10,35 +10,35 @@
  * derived from the step-index delta). Motion is intentionally light here; the
  * easing/animation polish is stage 10.
  */
-import { ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { provideRegistration } from '../composables/useRegistration.js'
-import { STEPS } from '../router/steps.js'
-import { EVENT } from '../data.js'
-import StepperHeader from '../components/ui/StepperHeader.vue'
-import WizardFooter from '../components/ui/WizardFooter.vue'
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { provideRegistration } from "../composables/useRegistration.js";
+import { STEPS } from "../router/steps.js";
+import AppBrand from "../components/ui/AppBrand.vue";
+import StepperHeader from "../components/ui/StepperHeader.vue";
+import WizardFooter from "../components/ui/WizardFooter.vue";
 
 // Create + provide the store once, here at the shell root (§4).
-const store = provideRegistration()
+const store = provideRegistration();
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 // The header and footer are sticky (fixed height); only <main> scrolls. Reset
 // its scroll to the top on every step change so a new step starts at the top.
-const scrollMain = ref(/** @type {HTMLElement | null} */ (null))
+const scrollMain = ref(/** @type {HTMLElement | null} */ (null));
 watch(
   () => route.path,
   (path) => {
-    if (scrollMain.value) scrollMain.value.scrollTop = 0
+    if (scrollMain.value) scrollMain.value.scrollTop = 0;
     // Reaching the review step activates validation (error banner + stepper
     // flags + the submit gate). This goes beyond the spec's submit-click model
     // (§7) but is better UX: the user sees what's missing and Submit stays
     // disabled until it's fixed.
-    if (path === '/review') store.submitAttempted.value = true
+    if (path === "/review") store.submitAttempted.value = true;
   },
   { immediate: true },
-)
+);
 
 /**
  * Direction-aware transition name for a step route. The router guard stashes it
@@ -49,7 +49,9 @@ watch(
  * @returns {string}
  */
 function transitionName(route) {
-  return typeof route.meta.transition === 'string' ? route.meta.transition : 'fade'
+  return typeof route.meta.transition === "string"
+    ? route.meta.transition
+    : "fade";
 }
 
 /**
@@ -59,11 +61,11 @@ function transitionName(route) {
  * submittedAt) and we go to the success screen (§4.3).
  */
 function onSubmit() {
-  const { ok, firstErrorStep } = store.submit()
+  const { ok, firstErrorStep } = store.submit();
   if (ok) {
-    router.push('/success')
+    router.push("/success");
   } else if (firstErrorStep) {
-    router.push(STEPS[firstErrorStep - 1].path)
+    router.push(STEPS[firstErrorStep - 1].path);
   }
 }
 </script>
@@ -72,17 +74,23 @@ function onSubmit() {
   <!-- App shell: fixed viewport height, header + footer sticky, only <main>
        scrolls (h-screen + overflow-hidden on the frame). -->
   <div class="h-screen bg-surface-l0 flex flex-col overflow-hidden">
-    <header class="shrink-0 bg-surface-l0 border-b border-solid border-neutral-muted">
-      <div class="mx-auto max-w-[1200px] w-full px-6 py-4 flex flex-col gap-4">
-        <h1 class="text-subtitle1 text-brand-emphasis m-0">{{ EVENT.name }}</h1>
-        <StepperHeader />
+    <header class="shrink-0 bg-surface-l0">
+      <div class="ml-12 w-full">
+        <AppBrand />
+      </div>
+      <div
+        class="border-y-1 border-x-0 border-solid divider-default py-[0.4rem]"
+      >
+        <div class="mx-auto w-full px-[7.3rem] py-[0.87rem]">
+          <StepperHeader />
+        </div>
       </div>
     </header>
 
     <!-- Only scrollable region. The order summary is not layout chrome — it
          lives inside Step 3 only, so the shell is a single centered column. -->
     <main ref="scrollMain" class="flex-1 overflow-y-auto">
-      <div class="mx-auto max-w-[1120px] w-full px-6 py-8">
+      <div class="mx-auto w-full px-[7.5rem] py-[2.45rem]">
         <router-view v-slot="{ Component, route: r }">
           <transition :name="transitionName(r)" mode="out-in">
             <keep-alive>
@@ -93,8 +101,10 @@ function onSubmit() {
       </div>
     </main>
 
-    <footer class="shrink-0 bg-surface-l0 border-t border-solid border-neutral-muted">
-      <div class="mx-auto max-w-[1200px] w-full px-6 py-4">
+    <footer
+      class="shrink-0 bg-surface-l0 border-t-1 border-0 border-solid divider-default"
+    >
+      <div class="mx-auto w-full px-[7.5rem] py-[1rem]">
         <WizardFooter @submit="onSubmit" />
       </div>
     </footer>

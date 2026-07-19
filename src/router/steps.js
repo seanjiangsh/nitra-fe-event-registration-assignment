@@ -15,12 +15,13 @@
  * @property {string} name         // route name
  * @property {string} path         // route path under the layout, e.g. '/attendee'
  * @property {string} label        // stepper label
+ * @property {string} [ctaLabel]   // fuller label for the footer "Next" CTA (falls back to `label`)
  */
 
 /** @type {WizardStep[]} */
 export const STEPS = [
   { order: 1, name: 'attendee', path: '/attendee', label: 'Attendee Info' },
-  { order: 2, name: 'sessions', path: '/sessions', label: 'Sessions' },
+  { order: 2, name: 'sessions', path: '/sessions', label: 'Sessions', ctaLabel: 'Session Selection' },
   { order: 3, name: 'add-ons', path: '/add-ons', label: 'Add-ons' },
   { order: 4, name: 'review', path: '/review', label: 'Review' },
 ]

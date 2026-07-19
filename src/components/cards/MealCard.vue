@@ -23,13 +23,19 @@ defineEmits(['toggle'])
 </script>
 
 <template>
-  <BaseCard :selected="selected" role="checkbox" @select="$emit('toggle')">
+  <BaseCard
+    :selected="selected"
+    role="checkbox"
+    padding="px-[1rem] py-[1rem]"
+    gap="gap-[7px]"
+    @select="$emit('toggle')"
+  >
     <div class="flex items-start justify-between gap-3">
-      <span class="text-subtitle1 text-neutral">{{ meal.name }}</span>
+      <span class="text-subtitle1 text-neutral tracking-normal">{{ meal.name }}</span>
       <span class="text-subtitle1 text-brand-emphasis shrink-0">{{ format(meal.price) }}</span>
     </div>
 
-    <p class="text-md text-neutral-muted m-0">{{ meal.description }}</p>
+    <p class="text-sm tracking-[0.075px] text-neutral-muted m-0">{{ meal.description }}</p>
 
     <span v-if="selected" class="flex items-center gap-1 text-sm font-medium text-success">
       <q-icon name="check" size="14px" /> Added to order

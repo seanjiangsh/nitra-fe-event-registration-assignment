@@ -19,7 +19,7 @@ const { pricing } = useRegistration();
 </script>
 
 <template>
-  <q-card flat class="!rounded-md bg-surface-l1">
+  <q-card flat class="!rounded-md bg-surface-l1 p-2">
     <q-card-section class="pb-2">
       <h2 class="text-subtitle1 text-neutral m-0">{{ title }}</h2>
     </q-card-section>
@@ -32,11 +32,10 @@ const { pricing } = useRegistration();
       <q-item v-for="line in pricing.lines" :key="line.id" dense class="px-4">
         <q-item-section>
           <span
-            class="text-sm"
             :class="
               line.kind === 'discount'
-                ? 'text-brand-emphasis'
-                : 'text-neutral-muted'
+                ? 'text-brand-emphasis text-[11px]'
+                : 'text-neutral-muted text-sm'
             "
           >
             {{ line.kind === "ticket" ? `${line.label} Ticket` : line.label }}
@@ -62,9 +61,11 @@ const { pricing } = useRegistration();
 
     <q-separator class="!bg-[var(--divider-default)]" />
 
-    <q-card-section class="flex items-baseline justify-between py-3">
-      <span class="text-md font-semibold text-neutral">{{ totalLabel }}</span>
-      <span class="text-md font-semibold text-neutral">{{ format(pricing.grandTotal) }}</span>
+    <q-card-section class="flex items-baseline justify-between py-4">
+      <span class="text-sm font-semibold text-neutral">{{ totalLabel }}</span>
+      <span class="text-sm font-semibold text-neutral">{{
+        format(pricing.grandTotal)
+      }}</span>
     </q-card-section>
   </q-card>
 </template>

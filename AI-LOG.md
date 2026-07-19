@@ -423,3 +423,93 @@ a single Back-to-Home that resets to a fresh registration (§4.3, S4.6).
   `/success` re-shows it with the same number; navigating to a step while submitted
   redirects back to `/success` (guard, read-only post-submit); Back to Home clears
   localStorage (`null`) and lands on a fresh, empty Step 1. Console clean.
+
+### Stage 9 · Design fidelity + interactive states
+
+**Prompt**: token mapping, hover/disabled/active/error/focus states, audit @1440.
+
+**Claude (first pass)**
+
+- **Focus-visible states (a11y §10.4).** `appearance-none` had stripped the native
+  focus ring from the selectable cards and the segmented tabs, leaving keyboard
+  users with no focus indicator. Added a `:focus-visible` brand outline (2px,
+  offset 2px) to `BaseCard` and `SegmentedTabs`; native buttons keep `appearance:
+  auto` so their default ring stays. Verified both rules load in the CSSOM.
+- **Token / hex audit clean.** The only hex in `src` templates is intentional and
+  token-less: the edit-link `#3A7679`, the card drop-shadow values, and the
+  success SVG — everything else is design tokens.
+- **1440 audit (§10.2).** At 1440 the content centres at max-1120 with no
+  horizontal overflow; hover/disabled/active/error states (built incrementally
+  through stages 4–8) all present. A true pixel overlay needs the Figma frames
+  (not available here), so remaining fidelity nits are driven from the design
+  captures.
+- **Header (caught).** The header showed text only — the design has a logo mark,
+  and the success page had no header at all. Extracted an `AppBrand` (the Figma
+  logo SVG + event name) and used it in both the wizard shell header and a new
+  success-page header, so the chrome is identical. Verified the logo (`#264D4F`,
+  40px) + title render on both `/attendee` and `/success`.
+- **Full-width stepper + dividers (design).** Split the header into a brand row and
+  a stepper band separated by a full-width divider (bottom divider is the header's
+  own border); the stepper's connectors became `flex-1` so the row fills the width
+  (verified `ol` = container 1152, connectors ~206–239px).
+- **Session capacity-bar colours (design).** Retuned to the Figma's 4 tiers —
+  ≥100% red, ≥70% orange (`accent`), ≥50% olive (`warning`), else green — matching
+  all six day-1 cards (s1 97% orange … s6 41% green). Config lives in
+  `SessionCard.barColor` (thresholds/token), with the raw values in the
+  `--bg-*-emphasis-rest` design tokens.
+- **Divider tokens on the header (design).** The stepper's top/bottom rules were
+  drawn with the border colour (`border-neutral-muted`); the design uses the
+  divider token. Switched both to `divider-default` so they match the stepper's
+  connector lines (verified both borders resolve to `rgba(0,0,0,0.1)` =
+  `--divider-default`).
+- **Reserve the session checkbox box (design).** Hiding the checkbox on a
+  disabled card (sold-out / conflict) collapsed the top row and nudged the card
+  content. Wrapped the checkbox in an always-present 22×22 box so the row height
+  is fixed whether the checkbox renders or not (verified the box stays 22×22 on
+  the sold-out card where the icon is absent).
+- **Fuller Next CTA on step 1 (design).** The footer's primary button read
+  "Next: Sessions" (reusing the compact stepper label). Added an optional
+  `ctaLabel` to the step metadata — the sessions step carries
+  `ctaLabel: 'Session Selection'`, and `WizardFooter` prefers it (`ctaLabel ??
+  label`). The stepper still shows the short "Sessions"; only the CTA reads
+  "Next: Session Selection". Verified the button text on `/attendee`.
+- **Back button as secondary/muted (design).** Restyled the footer Back button to
+  the Figma `components/button/secondary` tokens: `bg/muted/rest` and
+  `text/on-muted`. Those component-level tokens aren't in this repo (there's no
+  component-token layer), so they were aliased to the base semantic classes they
+  correspond to — `bg-neutral-muted-rest` (gray[100] #E3E6E8) and `text-neutral`
+  (neutral default, which the button already used). Also moved the hover from
+  `neutral-subtle-hover` to `neutral-muted-hover` (gray[200]) since the old hover
+  equalled the new rest bg and gave no feedback. Verified on `/sessions`:
+  bg `#E3E6E8`, text `rgba(0,0,0,0.9)`.
+- **Tick for completed steps (design).** Completed stepper steps (`i < activeIndex`)
+  now render a checkmark instead of the step number. Added `StepCheckIcon` (inline
+  SVG from the Figma export) using `stroke="currentColor"` so it inherits the
+  circle's foreground — the export's `stroke="white"` is icon-internal contrast,
+  but the completed circle uses the light `brand-muted` bg, so the tick renders in
+  `text-brand-emphasis` (dark teal) to stay visible. Precedence in the circle:
+  error dot → completed tick → number (active/future). Verified on `/add-ons`:
+  steps 1 & 2 show dark-teal ticks, step 3 shows "3", step 4 shows "4".
+- **Completed-step colour fix (design).** First pass kept the completed circle on
+  the light `brand-muted` bg with a dark-teal tick; the design wants it to match
+  the active number circle — solid `brand-emphasis` (#264D4F) fill with a **white**
+  tick. Switched the completed branch to `bg-brand-emphasis-rest text-inverse`, so
+  the `currentColor` tick renders white. Now active + completed share the dark-green
+  fill (number vs tick), future stays gray. Verified on `/add-ons`.
+- **Configurable card padding/gap (design).** `BaseCard` gained `padding` and
+  `gap` props (defaults empty/`gap-3`) so each stage sets its own rhythm: tickets
+  `px-[1.25rem]`, sessions/add-ons `p-4` with per-card gaps. Prevents one stage's
+  spacing tweak from leaking into the others.
+- **Badge track-colour mapping (design).** Retuned session track badges to the
+  Figma swatches using tokens only: main → `neutral-subtle` (new variant,
+  `bg-neutral-subtle-rest` + `text-gray-700`), frontend/devops → `accent`
+  (orange), backend → `info` (blue); disabled sessions fall back to the gray
+  `neutral-subtle`. `accent`/`info` already matched the exact hexes; added
+  `neutral-subtle` to `Badge` + the `BadgeVariant` type.
+- **Add-on card parity (design).** Propagated the Workshop card's spacing/type
+  changes to Meal and Merch (padding, gap, `tracking-normal` title, `text-sm`
+  description); removed the native border on the Merch qty stepper buttons.
+- **Review error list (design).** Each banner item is now prefixed with its step
+  ("Step 1: …") and the native `list-disc` marker was replaced with a flex row +
+  manual bullet so the dot↔text gap is a tunable `gap-*` (native marker spacing
+  isn't controllable). Title reads "…following errors before submitting".

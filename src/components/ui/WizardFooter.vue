@@ -7,36 +7,39 @@
  *
  * @emits submit — user pressed the primary action on the final (review) step
  */
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { STEPS, stepIndex } from '../../router/steps.js'
-import { useRegistration } from '../../composables/useRegistration.js'
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { STEPS, stepIndex } from "../../router/steps.js";
+import { useRegistration } from "../../composables/useRegistration.js";
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(["submit"]);
 
-const route = useRoute()
-const router = useRouter()
-const { isValid } = useRegistration()
+const route = useRoute();
+const router = useRouter();
+const { isValid } = useRegistration();
 
-const index = computed(() => stepIndex(route.path))
-const isFirst = computed(() => index.value === 0)
-const isLast = computed(() => index.value === STEPS.length - 1)
+const index = computed(() => stepIndex(route.path));
+const isFirst = computed(() => index.value === 0);
+const isLast = computed(() => index.value === STEPS.length - 1);
 
 /** On the review step, Submit is disabled until the whole registration is valid. */
-const submitDisabled = computed(() => isLast.value && !isValid.value)
+const submitDisabled = computed(() => isLast.value && !isValid.value);
 
-/** Label of the next step, for the "Next: …" CTA. */
-const nextLabel = computed(() => STEPS[index.value + 1]?.label ?? '')
+/** Label of the next step, for the "Next: …" CTA (prefers the fuller `ctaLabel`). */
+const nextLabel = computed(() => {
+  const next = STEPS[index.value + 1];
+  return next ? (next.ctaLabel ?? next.label) : "";
+});
 
 function back() {
-  if (!isFirst.value) router.push(STEPS[index.value - 1].path)
+  if (!isFirst.value) router.push(STEPS[index.value - 1].path);
 }
 
 function next() {
   if (isLast.value) {
-    emit('submit')
+    emit("submit");
   } else if (index.value !== -1) {
-    router.push(STEPS[index.value + 1].path)
+    router.push(STEPS[index.value + 1].path);
   }
 }
 </script>
@@ -47,7 +50,7 @@ function next() {
     <button
       v-if="!isFirst"
       type="button"
-      class="px-5 py-2 rounded-lg text-md font-semibold border border-solid border-neutral-muted text-neutral bg-surface-l0 cursor-pointer transition-colors hover:bg-neutral-subtle-hover hover:border-neutral-emphasis"
+      class="px-5 py-2 rounded-lg text-md font-semibold border border-solid border-neutral-muted text-neutral bg-neutral-muted-rest cursor-pointer transition-colors hover:bg-neutral-muted-hover hover:border-neutral-emphasis"
       @click="back"
     >
       Back
@@ -58,11 +61,11 @@ function next() {
          On review, disabled until the registration validates. -->
     <button
       type="button"
-      class="px-5 py-2 rounded-lg text-md font-semibold border-none text-inverse transition-colors bg-accent-emphasis-rest hover:bg-accent-emphasis-hover active:bg-accent-emphasis-active cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-emphasis-rest"
+      class="px-[16px] py-[.65rem] rounded-[10px] text-md font-semibold tracking-[-0.025px] text-inverse border-none transition-colors bg-accent-emphasis-rest hover:bg-accent-emphasis-hover active:bg-accent-emphasis-active cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-emphasis-rest"
       :disabled="submitDisabled"
       @click="next"
     >
-      {{ isLast ? 'Submit Registration' : `Next: ${nextLabel}` }}
+      {{ isLast ? "Submit Registration" : `Next: ${nextLabel}` }}
     </button>
   </div>
 </template>

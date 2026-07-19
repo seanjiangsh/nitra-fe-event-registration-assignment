@@ -41,16 +41,31 @@ const stepInvalid = (/** @type {number} */ step) =>
 const attendeeRows = computed(() => {
   const a = registration.attendee;
   const errs = submitAttempted.value ? errorsByStep.value[1] : [];
-  const hasErr = (/** @type {string} */ field) => errs.some((e) => e.field === field);
+  const hasErr = (/** @type {string} */ field) =>
+    errs.some((e) => e.field === field);
 
   /** Parenthetical shown after the value when the field is invalid. */
-  const noteFor = (/** @type {string} */ field, /** @type {string} */ value) => {
+  const noteFor = (
+    /** @type {string} */ field,
+    /** @type {string} */ value,
+  ) => {
     if (!hasErr(field)) return "";
-    if (!value) return field === "shippingAddress" ? "required for merchandise" : "required";
-    return field === "email" ? "invalid email" : field === "phone" ? "invalid phone" : "invalid";
+    if (!value)
+      return field === "shippingAddress"
+        ? "required for merchandise"
+        : "required";
+    return field === "email"
+      ? "invalid email"
+      : field === "phone"
+        ? "invalid phone"
+        : "invalid";
   };
 
-  const row = (/** @type {string} */ label, /** @type {string} */ field, /** @type {string} */ value) => ({
+  const row = (
+    /** @type {string} */ label,
+    /** @type {string} */ field,
+    /** @type {string} */ value,
+  ) => ({
     label,
     value,
     note: noteFor(field, value),
@@ -63,7 +78,13 @@ const attendeeRows = computed(() => {
     row("Phone", "phone", a.phone),
     row("Company", "company", a.company),
     row("Job Title", "jobTitle", a.jobTitle),
-    row("Ticket Type", "ticket", ticket.value ? `${ticket.value.name} (${formatCompact(ticket.value.price)})` : ""),
+    row(
+      "Ticket Type",
+      "ticket",
+      ticket.value
+        ? `${ticket.value.name} (${formatCompact(ticket.value.price)})`
+        : "",
+    ),
     row("Shipping Address", "shippingAddress", a.shippingAddress),
   ];
 });
@@ -91,14 +112,19 @@ const hasAddons = computed(
     <q-banner
       v-if="showErrors"
       rounded
-      class="bg-danger-subtle-rest !rounded-md"
+      class="bg-danger-muted-rest !rounded-md pt-4 pb-3"
     >
-      <span class="text-subtitle2 text-danger-emphasis block"
-        >Please fix the following before submitting</span
+      <span class="text-sm text-danger block font-medium tracking-normal">
+        Please fix the following errors before submitting</span
       >
-      <ul class="list-disc pl-5 m-0 text-md text-neutral">
-        <li v-for="err in allErrors" :key="`${err.step}-${err.field}`">
-          {{ err.message }}
+      <ul class="list-none p-0 m-0 text-sm text-neutral mt-1">
+        <li
+          v-for="err in allErrors"
+          :key="`${err.step}-${err.field}`"
+          class="flex items-baseline gap-1 text-danger text-sm/6.5"
+        >
+          <span aria-hidden="true" class="shrink-0">&bull;</span>
+          <span>Step {{ err.step }}: {{ err.message }}</span>
         </li>
       </ul>
     </q-banner>
@@ -118,9 +144,9 @@ const hasAddons = computed(
           :key="row.label"
           class="flex items-baseline justify-between gap-6"
         >
-          <dt class="shrink-0 text-md text-neutral-muted">{{ row.label }}</dt>
+          <dt class="shrink-0 text-sm text-neutral-muted">{{ row.label }}</dt>
           <dd
-            class="m-0 text-md text-right"
+            class="m-0 text-sm text-right"
             :class="row.invalid ? 'text-danger' : 'text-neutral'"
           >
             <template v-if="row.value">{{ row.value }}</template
@@ -140,7 +166,7 @@ const hasAddons = computed(
     >
       <p
         v-if="sortedSessions.length === 0"
-        class="text-md text-neutral-muted m-0"
+        class="text-sm text-neutral-muted m-0"
       >
         No sessions selected.
       </p>
@@ -148,7 +174,7 @@ const hasAddons = computed(
         <li
           v-for="s in sortedSessions"
           :key="s.id"
-          class="flex justify-between gap-6 text-md"
+          class="flex justify-between gap-6 text-sm"
         >
           <span class="shrink-0 text-neutral-muted">{{ sessionWhen(s) }}</span>
           <span class="text-right text-neutral">{{ s.title }}</span>
@@ -163,14 +189,14 @@ const hasAddons = computed(
       :step="3"
       :invalid="stepInvalid(3)"
     >
-      <p v-if="!hasAddons" class="text-md text-neutral-muted m-0">
+      <p v-if="!hasAddons" class="text-sm text-neutral-muted m-0">
         No add-ons selected.
       </p>
       <ul v-else class="list-none p-0 m-0 flex flex-col gap-3">
         <li
           v-for="w in selectedWorkshops"
           :key="w.id"
-          class="flex justify-between gap-6 text-md"
+          class="flex justify-between gap-6 text-sm"
         >
           <span class="shrink-0 text-neutral-muted">Workshop</span>
           <span class="text-right text-neutral"
@@ -180,7 +206,7 @@ const hasAddons = computed(
         <li
           v-for="m in selectedMeals"
           :key="m.id"
-          class="flex justify-between gap-6 text-md"
+          class="flex justify-between gap-6 text-sm"
         >
           <span class="shrink-0 text-neutral-muted">Meal</span>
           <span class="text-right text-neutral"
@@ -190,7 +216,7 @@ const hasAddons = computed(
         <li
           v-for="entry in selectedMerch"
           :key="entry.item.id"
-          class="flex justify-between gap-6 text-md"
+          class="flex justify-between gap-6 text-sm"
         >
           <span class="shrink-0 text-neutral-muted">Merchandise</span>
           <span class="text-right text-neutral">

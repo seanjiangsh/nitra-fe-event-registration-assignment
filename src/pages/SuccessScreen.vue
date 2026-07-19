@@ -7,50 +7,87 @@
  * Home" is the single action — it clears persisted state and starts a fresh
  * registration, the only full state wipe.
  */
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { hydrate, clearPersisted } from '../composables/useRegistrationPersistence.js'
-import { FIRST_STEP_PATH } from '../router/steps.js'
-import { EVENT } from '../data.js'
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import {
+  hydrate,
+  clearPersisted,
+} from "../composables/useRegistrationPersistence.js";
+import { FIRST_STEP_PATH } from "../router/steps.js";
+import { EVENT } from "../data.js";
+import AppBrand from "../components/ui/AppBrand.vue";
 
-const router = useRouter()
+const router = useRouter();
 
 // The submitted registration (read once from storage; the store is unmounted here).
-const registration = hydrate()
+const registration = hydrate();
 
 /** Deterministic confirmation number from submittedAt, so it's stable on reload. */
 const confirmationNumber = computed(() => {
-  const year = EVENT.dates[0].slice(0, 4)
-  const stamp = registration?.submittedAt ? new Date(registration.submittedAt).getTime() : Date.now()
-  return `WD${year}-${String(stamp).slice(-5)}`
-})
+  const year = EVENT.dates[0].slice(0, 4);
+  const stamp = registration?.submittedAt
+    ? new Date(registration.submittedAt).getTime()
+    : Date.now();
+  return `WD${year}-${String(stamp).slice(-5)}`;
+});
 
-const attendeeName = computed(() => registration?.attendee.fullName?.trim() ?? '')
-const attendeeEmail = computed(() => registration?.attendee.email?.trim() ?? '')
+const attendeeName = computed(
+  () => registration?.attendee.fullName?.trim() ?? "",
+);
+const attendeeEmail = computed(
+  () => registration?.attendee.email?.trim() ?? "",
+);
 
 function backToHome() {
-  clearPersisted()
-  router.push(FIRST_STEP_PATH)
+  clearPersisted();
+  router.push(FIRST_STEP_PATH);
 }
 </script>
 
 <template>
-  <main class="min-h-screen flex items-center justify-center p-6">
-    <div class="flex flex-col items-center gap-5 text-center max-w-[32rem]">
+  <div class="min-h-screen flex flex-col bg-surface-l0">
+    <!-- Same brand header as the wizard shell -->
+    <header class="shrink-0 bg-surface-l0 border-b border-solid border-neutral-muted">
+      <div class="mx-auto max-w-[1200px] w-full px-6 py-4">
+        <AppBrand />
+      </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-6">
+      <div class="flex flex-col items-center gap-5 text-center max-w-[32rem]">
       <!-- Success mark (exact Figma SVG; the green + white are icon-internal). -->
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg
+        width="80"
+        height="80"
+        viewBox="0 0 80 80"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
         <rect width="80" height="80" rx="40" fill="#15B471" />
-        <path d="M22 40L34.8571 54L58 26" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          d="M22 40L34.8571 54L58 26"
+          stroke="white"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
 
-      <h1 class="text-h2 text-neutral m-0">Registration Complete!</h1>
+      <h1 class="text-h2 text-success tracking-[0.015rem] m-0">
+        Registration Complete!
+      </h1>
 
-      <p class="text-lg font-semibold text-brand-emphasis m-0">Confirmation #{{ confirmationNumber }}</p>
+      <p class="text-lg font-semibold text-brand-emphasis m-0">
+        Confirmation #{{ confirmationNumber }}
+      </p>
 
       <p class="text-md text-neutral-muted m-0">
-        Thank you<template v-if="attendeeName">, {{ attendeeName }}</template>! Your spot at
-        {{ EVENT.name }} is confirmed.
-        <template v-if="attendeeEmail"> A confirmation email has been sent to {{ attendeeEmail }}.</template>
+        Thank you<template v-if="attendeeName">, {{ attendeeName }}</template
+        >! Your spot at {{ EVENT.name }} is confirmed.
+        <template v-if="attendeeEmail">
+          A confirmation email has been sent to {{ attendeeEmail }}.</template
+        >
       </p>
 
       <button
@@ -60,6 +97,7 @@ function backToHome() {
       >
         Back to Home
       </button>
-    </div>
-  </main>
+      </div>
+    </main>
+  </div>
 </template>

@@ -109,9 +109,9 @@ function setMerchSize(/** @type {string} */ id, /** @type {string} */ size) {
 
       <!-- Shipping info (S3.4) — always present so adding merch doesn't shift layout -->
       <template v-if="activeTab === 'merch'">
-        <q-banner class="bg-info-subtle-rest !rounded-md text-neutral">
+        <q-banner class="bg-info-subtle-rest !rounded-md text-neutral p-4">
           <template #avatar>
-            <q-icon name="info" class="text-info-emphasis" />
+            <q-icon name="info" size="18px" class="text-info-emphasis" />
           </template>
           <span class="text-subtitle2 text-neutral block"
             >Shipping Information</span
@@ -127,7 +127,7 @@ function setMerchSize(/** @type {string} */ id, /** @type {string} */ size) {
       <!-- Category content (row list) with a direction-aware slide on switch -->
       <div
         :key="activeTab"
-        class="flex flex-col gap-4"
+        class="flex flex-col gap-[1.5rem] mt-1"
         :class="contentDir === 'next' ? 'addon-slide-next' : 'addon-slide-prev'"
       >
         <template v-if="activeTab === 'workshops'">
@@ -169,7 +169,7 @@ function setMerchSize(/** @type {string} */ id, /** @type {string} */ size) {
     </div>
 
     <!-- Right: live order summary (sticky within the scrolling main) -->
-    <aside class="w-80 shrink-0 sticky top-2">
+    <aside class="w-[380px] shrink-0 sticky top-2">
       <OrderSummary />
     </aside>
   </section>

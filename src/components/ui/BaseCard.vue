@@ -20,9 +20,15 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   interactive: { type: Boolean, default: true },
   /** Background utility class when NOT selected (ticket cards opt into surface-l1). */
-  restBg: { type: String, default: 'bg-surface-l0' },
+  restBg: { type: String, default: "bg-surface-l0" },
+  /** Background utility class when selected (ticket cards opt into the lighter brand-subtle). */
+  selectedBg: { type: String, default: "bg-brand-subtle-rest" },
   /** Background utility class when disabled + not selected (sessions use surface-l2). */
-  disabledBg: { type: String, default: 'bg-surface-l0 opacity-60' },
+  disabledBg: { type: String, default: "bg-surface-l0 opacity-60" },
+  /** Padding utility (default p-4; stage 1 tickets opt into the roomier 1.25rem). */
+  padding: { type: String, default: "" },
+  /** Gap between stacked card rows (default gap-3; sessions opt into the tighter gap-1). */
+  gap: { type: String, default: "" },
   /** ARIA role when interactive. */
   role: {
     type: /** @type {import('vue').PropType<'radio' | 'checkbox'>} */ (String),
@@ -44,9 +50,11 @@ function activate() {
     :role="interactive ? role : undefined"
     :aria-checked="interactive && role ? selected : undefined"
     :disabled="interactive && disabled ? true : undefined"
-    class="card-shell appearance-none border-0 flex flex-col gap-3 p-4 w-full text-left rounded-md transition-all"
+    class="card-shell appearance-none border-0 flex flex-col w-full text-left rounded-md transition-all"
     :class="[
-      selected ? 'is-selected bg-brand-muted-rest' : disabled ? disabledBg : restBg,
+      padding,
+      gap,
+      selected ? `is-selected ${selectedBg}` : disabled ? disabledBg : restBg,
       disabled
         ? 'is-disabled cursor-not-allowed'
         : interactive
@@ -76,5 +84,10 @@ function activate() {
 }
 .card-shell.is-interactive:not(.is-disabled):hover {
   --card-elevation: 0px 4px 16px 0px #00000014;
+}
+/* Keyboard focus ring (appearance-none strips the native one). */
+.card-shell:focus-visible {
+  outline: 2px solid var(--border-brand-emphasis);
+  outline-offset: 2px;
 }
 </style>

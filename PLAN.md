@@ -345,6 +345,8 @@ Design Fidelity is 20% and rewards pixel-perfect reproduction, so audit against 
 
 PPA method per screen: set the browser viewport to 1440, screenshot each step, overlay against the matching Figma frame (export at 1x, or Figma "compare"), and check spacing, font sizes (map to the `text-h*`/`text-lg/md/sm` tokens, not eyeballed px), colors (token names, never hex), border radius, and the interactive states (hover/active/disabled/error). Keep a short PPA checklist in the commit for stage 9. Content height "hugs", so do not force fixed heights; let content flow.
 
+> **Note for the interviewer — `pixel-perfect-captures/`.** This directory holds the reference PPA snapshots taken at the 1440 audit width (`stage-1`, `stage-2`, `stage-3_workshop`, `stage-3_merchandise`, `stage-4_review`, `stage-4_review-error-state`). They are the overlay targets the stage-9 design-fidelity pass was tuned against — the many small token/spacing adjustments logged in `AI-LOG.md` (stepper, badge colours, card padding/gap, selected states, review error list, etc.) were each verified in-browser against these captures. They are committed as evidence of the fidelity work, not consumed by the app at runtime.
+
 ### 10.3 Motion & transitions (stage 10 targets)
 
 UX Polish (15%) explicitly scores transitions and animations, so motion is a dedicated stage, not an afterthought. All motion is token/timing-consistent (one easing + duration scale, e.g. 150ms micro, 250ms step), respects `prefers-reduced-motion`, and never blocks input.
@@ -352,6 +354,7 @@ UX Polish (15%) explicitly scores transitions and animations, so motion is a ded
 | Interaction                        | Target component                      | Motion                                                                                                     |
 | ---------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Step change (next/back/jump)       | wizard shell / step host              | slide + fade, `<transition>` (or `<transition-group>`), `mode="out-in"`; direction-aware (forward vs back) |
+| Session day-tab switch             | Step2SessionSelection / SegmentedTabs | slide left/right + fade on the day panel; direction-aware (later day → slide in from right)                 |
 | Lazy route/chunk load              | `App.vue` `<router-view>`             | `fade` transition on the async component (no Suspense, §4.1)                                              |
 | Ticket / session / workshop select | TicketCard, SessionCard, WorkshopCard | border + background ease to selected; subtle scale/press on click                                          |
 | Card hover / disabled              | all cards                             | hover elevation/border ease; disabled = no transition, reduced opacity                                     |

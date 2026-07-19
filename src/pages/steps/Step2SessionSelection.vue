@@ -20,7 +20,9 @@ const { registration, selectedSessions, selectedWorkshops } = useRegistration();
 const activeDay = ref(EVENT.dates[0]);
 
 /** Day options for the segmented switcher. */
-const dayTabs = computed(() => EVENT.dates.map((d) => ({ id: d, label: formatDayShort(d) })));
+const dayTabs = computed(() =>
+  EVENT.dates.map((d) => ({ id: d, label: formatDayShort(d) })),
+);
 
 const isSelected = (/** @type {import('../../types.js').Session} */ s) =>
   registration.selectedSessionIds.includes(s.id);
@@ -72,11 +74,16 @@ function toggleSession(id) {
     </header>
 
     <!-- Day switcher -->
-    <SegmentedTabs v-model="activeDay" :options="dayTabs" aria-label="Conference day" />
+    <SegmentedTabs
+      v-model="activeDay"
+      :options="dayTabs"
+      aria-label="Conference day"
+    />
 
     <!-- Selected count -->
-    <p class="text-md font-semibold text-brand-emphasis m-0">
-      {{ selectedCount }} {{ selectedCount === 1 ? 'session' : 'sessions' }} selected
+    <p class="text-sm font-semibold text-brand-emphasis m-0">
+      {{ selectedCount }}
+      {{ selectedCount === 1 ? "session" : "sessions" }} selected
     </p>
 
     <!-- Session grid -->

@@ -11,7 +11,8 @@ import { TICKETS } from "../../data.js";
 import TicketCard from "../../components/cards/TicketCard.vue";
 import TextField from "../../components/ui/TextField.vue";
 
-const { registration, hasMerch, submitAttempted, errorsByStep } = useRegistration();
+const { registration, hasMerch, submitAttempted, errorsByStep } =
+  useRegistration();
 
 /** Field → message map for Step 1, only after a submit was attempted (§7). */
 const fieldErrors = computed(() => {
@@ -33,11 +34,13 @@ function selectTicket(id) {
   <section class="flex flex-col gap-8">
     <!-- Ticket selection (single-select) -->
     <div class="flex flex-col gap-3">
-      <h2 class="text-subtitle1 text-neutral m-0">Select Ticket Type</h2>
+      <h2 class="text-subtitle1 text-neutral m-0 tracking-normal">
+        Select Ticket Type
+      </h2>
       <div
         role="radiogroup"
         aria-label="Ticket type"
-        class="grid grid-cols-3 gap-4"
+        class="grid grid-cols-3 gap-4 pt-1"
       >
         <TicketCard
           v-for="ticket in TICKETS"
@@ -47,17 +50,21 @@ function selectTicket(id) {
           @select="selectTicket(ticket.id)"
         />
       </div>
-      <p v-if="fieldErrors.ticket" class="text-sm text-danger-emphasis m-0">{{ fieldErrors.ticket }}</p>
+      <p v-if="fieldErrors.ticket" class="text-sm text-danger m-0">
+        {{ fieldErrors.ticket }}
+      </p>
     </div>
 
     <!-- Attendee details -->
     <div class="flex flex-col gap-3">
-      <h3 class="text-h3 text-neutral m-0">Attendee Information</h3>
-      <div class="grid grid-cols-2 gap-4">
+      <h3 class="text-h3 text-neutral m-0 tracking-[0.2px]">
+        Attendee Information
+      </h3>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-[1.3rem] mt-[1.25rem]">
         <TextField
           id="fullName"
           v-model="registration.attendee.fullName"
-          label="Full name"
+          label="Full Name"
           autocomplete="name"
           placeholder="Enter your full name"
           :error="fieldErrors.fullName"
@@ -92,7 +99,7 @@ function selectTicket(id) {
           id="jobTitle"
           v-model="registration.attendee.jobTitle"
           class="col-span-2"
-          label="Job title"
+          label="Job Title"
           autocomplete="organization-title"
           placeholder="Enter your job title"
           :error="fieldErrors.jobTitle"
@@ -101,7 +108,7 @@ function selectTicket(id) {
           id="shippingAddress"
           v-model="registration.attendee.shippingAddress"
           class="col-span-2"
-          :label="hasMerch ? 'Shipping address' : 'Shipping address (optional)'"
+          :label="hasMerch ? 'Shipping Address' : 'Shipping Address (Optional)'"
           :required="hasMerch"
           autocomplete="street-address"
           placeholder="Enter your shipping address"
