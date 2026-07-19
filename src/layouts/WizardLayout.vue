@@ -53,7 +53,7 @@ function onSubmit() {
 <template>
   <!-- App shell: fixed viewport height, header + footer sticky, only <main>
        scrolls (h-screen + overflow-hidden on the frame). -->
-  <div class="h-screen bg-surface-l1 flex flex-col overflow-hidden">
+  <div class="h-screen bg-surface-l0 flex flex-col overflow-hidden">
     <header class="shrink-0 bg-surface-l0 border-b border-solid border-neutral-muted">
       <div class="mx-auto max-w-[1200px] w-full px-6 py-4 flex flex-col gap-4">
         <h1 class="text-subtitle1 text-brand-emphasis m-0">{{ EVENT.name }}</h1>

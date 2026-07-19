@@ -47,7 +47,7 @@ function selectTicket(id) {
           v-model="registration.attendee.fullName"
           label="Full name"
           autocomplete="name"
-          placeholder="Ada Lovelace"
+          placeholder="Enter your full name"
         />
         <TextField
           id="email"
@@ -55,7 +55,7 @@ function selectTicket(id) {
           label="Email"
           type="email"
           autocomplete="email"
-          placeholder="ada@example.com"
+          placeholder="Enter your email"
         />
         <TextField
           id="phone"
@@ -63,14 +63,14 @@ function selectTicket(id) {
           label="Phone"
           type="tel"
           autocomplete="tel"
-          placeholder="(415) 555-2671"
+          placeholder="Enter your phone number"
         />
         <TextField
           id="company"
           v-model="registration.attendee.company"
           label="Company"
           autocomplete="organization"
-          placeholder="Analytical Engines Ltd."
+          placeholder="Enter your company name"
         />
         <TextField
           id="jobTitle"
@@ -78,7 +78,7 @@ function selectTicket(id) {
           class="col-span-2"
           label="Job title"
           autocomplete="organization-title"
-          placeholder="Software Engineer"
+          placeholder="Enter your job title"
         />
         <TextField
           id="shippingAddress"
@@ -86,8 +86,7 @@ function selectTicket(id) {
           class="col-span-2"
           label="Shipping address (optional)"
           autocomplete="street-address"
-          placeholder="1234 Innovation Blvd, San Francisco, CA"
-          hint="Required only if you order merchandise on the Add-ons step."
+          placeholder="Enter your shipping address"
         />
       </div>
     </div>

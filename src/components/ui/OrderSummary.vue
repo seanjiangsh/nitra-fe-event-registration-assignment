@@ -1,9 +1,9 @@
 <script setup>
 /**
- * Live order summary. Reads the shared store's itemized `pricing` and renders a
- * running breakdown + grand total via the single currency formatter. This is
- * the minimal, wired version; the full styled summary (grouping, transitions,
- * empty states) is fleshed out in stage 6.
+ * Live order summary (Step 3, S3.5). Reads the shared store's itemized `pricing`
+ * and renders a running breakdown + grand total via the single currency
+ * formatter (S3.6). Built on Quasar's `q-card` / `q-list` / `q-item` for the
+ * panel + line-item structure, styled with design tokens.
  */
 import { useRegistration } from '../../composables/useRegistration.js'
 import { format } from '../../composables/useCurrency.js'
@@ -12,31 +12,35 @@ const { pricing } = useRegistration()
 </script>
 
 <template>
-  <aside class="bg-surface-l0 border border-solid border-neutral-muted rounded-xl p-4">
-    <h2 class="text-subtitle1 text-neutral m-0 mb-3">Order Summary</h2>
+  <q-card flat class="!rounded-md bg-surface-l1">
+    <q-card-section class="pb-2">
+      <h2 class="text-subtitle1 text-neutral m-0">Order Summary</h2>
+    </q-card-section>
 
-    <p v-if="pricing.lines.length === 0" class="text-md text-neutral-muted m-0">
-      Nothing selected yet.
-    </p>
+    <q-card-section v-if="pricing.lines.length === 0" class="pt-0">
+      <p class="text-md text-neutral-muted m-0">Nothing selected yet.</p>
+    </q-card-section>
 
-    <ul v-else class="list-none p-0 m-0 flex flex-col gap-2">
-      <li
-        v-for="line in pricing.lines"
-        :key="line.id"
-        class="flex items-baseline justify-between gap-3 text-md"
-      >
-        <span :class="line.kind === 'discount' ? 'text-success' : 'text-neutral-muted'">
-          {{ line.label }}<span v-if="line.qty" class="text-neutral-quiet"> &times;{{ line.qty }}</span>
-        </span>
-        <span :class="line.kind === 'discount' ? 'text-success font-medium' : 'text-neutral font-medium'">
-          {{ format(line.amount) }}
-        </span>
-      </li>
-    </ul>
+    <q-list v-else class="pb-1">
+      <q-item v-for="line in pricing.lines" :key="line.id" dense class="px-4">
+        <q-item-section>
+          <span class="text-md" :class="line.kind === 'discount' ? 'text-success' : 'text-neutral-muted'">
+            {{ line.label }}<span v-if="line.qty" class="text-neutral-quiet"> &times;{{ line.qty }}</span>
+          </span>
+        </q-item-section>
+        <q-item-section side>
+          <span class="text-md font-medium" :class="line.kind === 'discount' ? 'text-success' : 'text-neutral'">
+            {{ format(line.amount) }}
+          </span>
+        </q-item-section>
+      </q-item>
+    </q-list>
 
-    <div class="mt-3 pt-3 border-t border-solid border-neutral-muted flex items-baseline justify-between">
+    <q-separator class="!bg-[var(--divider-default)]" />
+
+    <q-card-section class="flex items-baseline justify-between py-3">
       <span class="text-md font-semibold text-neutral">Total</span>
       <span class="text-subtitle1 font-bold text-brand-emphasis">{{ format(pricing.grandTotal) }}</span>
-    </div>
-  </aside>
+    </q-card-section>
+  </q-card>
 </template>

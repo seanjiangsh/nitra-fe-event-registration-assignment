@@ -247,3 +247,68 @@ sold-out disabled, capacity bar, "N selected"; time-conflicts deferred to Step 4
   review (6–7), `q-banner` for the shipping alert (6), `q-timeline` for the review
   session list (7), and `q-input` reconsidered there for its built-in error/hint
   states. Building those Quasar-first.
+
+### Stage 6 · Step 3 add-ons + order summary
+
+**Prompt**: add-ons grouped by category (workshops with live conflict-disable,
+meals, merch with qty + size), shipping banner, live order summary; currency.
+
+**Claude (first pass)**
+
+- **Delivered the Quasar-first commitment.** `OrderSummary` is `q-card` +
+  `q-list`/`q-item`/`q-item-section` + `q-separator`; the shipping alert is a
+  `q-banner` with an avatar icon (S3.4). Add-on cards reuse the shared `BaseCard`
+  — `WorkshopCard`/`MealCard` as interactive checkboxes, `MerchCard` as the
+  **non-interactive** variant (`:interactive="false"`) since it owns its own qty
+  stepper + size picker (the reason BaseCard supports a `<div>` form).
+- **Live workshop conflict (S3.2).** `Step3` computes each workshop's
+  availability from `selectedSessions` via `overlaps()`: disabled + a note
+  (`Overlaps "…"`) when it clashes with a selected session, sold-out when full.
+  Verified reactive both ways — selecting s11 disabled ws1 ("Overlaps
+  'Accessibility Deep Dive'"), removing it re-enabled ws1; ws2 stays sold-out
+  (25/25).
+- **Pricing verified through the live UI** (not just the Node unit): VIP + ws1
+  → **$733.10** (with the "VIP workshop discount (10%) −$14.90" line), VIP + merch
+  → **$670.00**, VIP + ws1 + merch → **$804.10**. Meal multi-select, merch size,
+  and decrement-to-0 removal (drops the key, hides the banner) all confirmed.
+
+**Self-caught (verify)**
+
+- **Rapid-click qty bug.** The stepper first emitted `qty + 1` computed from its
+  prop — but the prop hasn't re-rendered between synchronous clicks, so 3 fast
+  clicks all read the same stale value and only stepped once. Refactored
+  `MerchCard` to emit intent (`increment` / `decrement`); `Step3.stepMerch` derives
+  the next qty from the **live store** and clamps to `maxQuantity`. Verified: 5
+  rapid clicks on a max-2 item cap at 2.
+
+**Human review (caught — merch design capture)**
+
+- **Extracted `SegmentedTabs`** (reusable) — a sliding `bg-brand-emphasis-rest`
+  indicator that measures the active button's `offsetLeft/Width` so tabs keep
+  natural widths; verified it slides (Workshops 4px/120 → Merchandise 275px/129).
+  Used for both the add-on categories and (retrofitted) the Step 2 day switcher.
+  Add-on content gets a direction-aware slide on switch via a CSS `@keyframes`
+  animation (degrades gracefully — no JS-transition-end dependency).
+- **Add-on cards now match the capture**: full-width **row list** (`flex-col`, not
+  a grid), **no checkbox** — selection is conveyed by the brand-muted bg + a
+  green "✓ Added to order" affordance; **size is a dropdown** (`<select>`); merch
+  controls (size + qty stepper + "max N") sit on one inline row.
+- **BaseCard selected bg → `bg-brand-muted-rest`** (all selectable/addable cards);
+  verified `rgb(203,229,230)`.
+- **OrderSummary is the surface-card variant** (`bg-surface-l1`, verified
+  `rgb(244,245,246)`, no border).
+- **Shipping banner is always present** (no `v-if`) so adding merch never shifts
+  the page, with the capture's "Shipping Information" copy in a `q-banner`.
+- **Follow-up fixes.** (1) `bg-surface-l1` had leaked onto the app shell — moved
+  it off (shell → white `surface-l0`) and scoped `surface-l1` to just the ticket
+  unselected card (a new `restBg` prop on `BaseCard`, default `surface-l0`) and the
+  order summary; other cards stay white. (2) `SegmentedTabs` buttons showed native
+  UA borders and their opaque button bg covered the sliding indicator — added
+  `appearance-none border-0 bg-transparent` so the green indicator shows through
+  (verified `border-width: 0`, transparent bg, indicator `rgb(38,77,79)`).
+- **Workshops show capacity, not "Added to order".** Since workshops have
+  capacity, the card now reads "N spots remaining" / "Sold Out" (counting the
+  attendee's own reservation, like sessions) instead of the merch-style affordance;
+  selection is conveyed by the brand bg + border. The conflict reason ("Overlaps
+  …") is a separate `conflictNote` prop. Verified ws1 8→7 on select, ws2 "Sold
+  Out", no "Added to order" on any workshop.

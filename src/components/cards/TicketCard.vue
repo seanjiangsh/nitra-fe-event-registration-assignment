@@ -27,7 +27,7 @@ defineEmits(['select'])
 </script>
 
 <template>
-  <BaseCard :selected="selected" role="radio" @select="$emit('select')">
+  <BaseCard :selected="selected" role="radio" rest-bg="bg-surface-l1" @select="$emit('select')">
     <div class="flex items-baseline justify-between gap-2">
       <span class="text-subtitle1 text-neutral">{{ ticket.name }}</span>
       <span class="text-h4 text-brand-emphasis">{{ format(ticket.price) }}</span>

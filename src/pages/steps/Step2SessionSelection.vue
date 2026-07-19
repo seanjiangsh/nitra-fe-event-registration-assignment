@@ -9,11 +9,15 @@ import { ref, computed } from "vue";
 import { useRegistration } from "../../composables/useRegistration.js";
 import { SESSIONS, EVENT } from "../../data.js";
 import { formatDayShort } from "../../composables/useDateTime.js";
+import SegmentedTabs from "../../components/ui/SegmentedTabs.vue";
 import SessionCard from "../../components/cards/SessionCard.vue";
 
 const { registration } = useRegistration();
 
 const activeDay = ref(EVENT.dates[0]);
+
+/** Day options for the segmented switcher. */
+const dayTabs = computed(() => EVENT.dates.map((d) => ({ id: d, label: formatDayShort(d) })));
 
 /** Sessions grouped by their UTC date (`YYYY-MM-DD`), in event-day order. */
 const sessionsByDay = computed(() => {
@@ -45,25 +49,8 @@ function toggleSession(id) {
       <h2 class="text-h3 text-neutral m-0">Select Sessions</h2>
     </header>
 
-    <!-- Day switcher (segmented control) -->
-    <div
-      role="tablist"
-      aria-label="Conference day"
-      class="inline-flex w-fit gap-1 p-1 rounded-xl bg-surface-l2"
-    >
-      <button
-        v-for="day in EVENT.dates"
-        :key="day"
-        type="button"
-        role="tab"
-        :aria-selected="day === activeDay"
-        class="px-6 py-2 rounded-lg text-md font-semibold transition-colors"
-        :class="day === activeDay ? 'bg-brand-emphasis-rest text-inverse' : 'text-neutral-muted hover:text-neutral'"
-        @click="activeDay = day"
-      >
-        {{ formatDayShort(day) }}
-      </button>
-    </div>
+    <!-- Day switcher -->
+    <SegmentedTabs v-model="activeDay" :options="dayTabs" aria-label="Conference day" />
 
     <!-- Selected count -->
     <p class="text-md font-semibold text-brand-emphasis m-0">
