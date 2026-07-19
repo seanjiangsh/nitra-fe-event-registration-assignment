@@ -156,10 +156,19 @@ export function createRegistrationStore() {
     return null
   })
 
-  /** Mark that a submit was attempted and report the gate result (S4.4/S4.5). */
+  /**
+   * Mark a submit attempt and, if valid, finalise the registration
+   * (status → 'submitted', stamp `submittedAt`). The deep watch persists it, so a
+   * reload re-shows the success screen (§4.3). Reports the gate result (S4.4/S4.5).
+   */
   function submit() {
     submitAttempted.value = true
-    return { ok: isValid.value, firstErrorStep: firstErrorStep.value }
+    const ok = isValid.value
+    if (ok) {
+      registration.status = 'submitted'
+      registration.submittedAt = new Date().toISOString()
+    }
+    return { ok, firstErrorStep: firstErrorStep.value }
   }
 
   /** Clear the store and its persisted copy — the only full state wipe (§4.3). */

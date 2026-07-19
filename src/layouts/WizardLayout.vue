@@ -53,14 +53,16 @@ function transitionName(route) {
 }
 
 /**
- * Unified submit gate (S4.4/S4.5). Validate everything at once; if anything
- * fails, mark the attempt (which reveals errors + stepper flags) and jump to the
- * lowest failing step. On success the registration is submitted — the success
- * screen + redirect are wired in stage 8.
+ * Unified submit gate (S4.4/S4.5). Validate everything at once; on failure, mark
+ * the attempt (revealing errors + stepper flags) and jump to the lowest failing
+ * step. On success the registration is finalised (`submit()` stamps status +
+ * submittedAt) and we go to the success screen (§4.3).
  */
 function onSubmit() {
   const { ok, firstErrorStep } = store.submit()
-  if (!ok && firstErrorStep) {
+  if (ok) {
+    router.push('/success')
+  } else if (firstErrorStep) {
     router.push(STEPS[firstErrorStep - 1].path)
   }
 }

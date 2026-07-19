@@ -402,3 +402,24 @@ the session-conflict check surfaced (S2.2).
   field (bad email) showed plain, not red. Rewired the rows to the actual
   `errorsByStep[1]`: empty → "— (required…)", present-but-invalid → "value (invalid
   email/phone)", both red. Verified `notanemail (invalid email)` in red.
+
+### Stage 8 · Success screen + back-to-home reset
+
+**Prompt**: finalise on submit, a success screen with a confirmation number, and
+a single Back-to-Home that resets to a fresh registration (§4.3, S4.6).
+
+**Claude (first pass)**
+
+- **Finalise in `submit()`**: on a valid submit it sets `status = 'submitted'` +
+  stamps `submittedAt`; the deep-watch persists it, and the layout's `onSubmit`
+  pushes `/success` (jumps to the first error step otherwise).
+- **SuccessScreen** is self-contained (top-level route, no layout store): it
+  `hydrate()`s the persisted registration, shows "Registration Complete!", a
+  deterministic confirmation number (`WD<eventYear>-<submittedAt digits>`, stable
+  across reloads), a personalised message, and Back to Home — which `clearPersisted()`
+  + returns to Step 1 (the only full state wipe).
+- **Verified the whole lifecycle**: valid submit → `/success`, `status:'submitted'`,
+  `submittedAt` set, "Confirmation #WD2028-26712", personalised copy; reload on
+  `/success` re-shows it with the same number; navigating to a step while submitted
+  redirects back to `/success` (guard, read-only post-submit); Back to Home clears
+  localStorage (`null`) and lands on a fresh, empty Step 1. Console clean.
