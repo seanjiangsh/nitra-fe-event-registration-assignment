@@ -2,18 +2,20 @@
 /**
  * One session in the Step 2 grid. Multi-select via the shared `BaseCard`
  * (role="checkbox", keyboard-operable). Card shows title, speaker, UTC time,
- * track, and remaining spots (S2.4). Overlap with other selected sessions is NOT
- * handled here — it's deferred to the Step 4 submit check (S2.2).
+ * track, and remaining spots (S2.4).
  *
- * Capacity counts the attendee's own reservation: selecting drops "spots left"
- * by one and nudges the bar. A session the attendee has selected is never
- * disabled — even if that took the last spot (it then reads "Sold out" but stays
- * interactive so they can deselect). A session is disabled only when full *and*
- * the attendee hasn't taken a spot (S2.3): there is genuinely no seat.
+ * `disabled` is decided by the parent and is true when the session is sold out
+ * OR its time overlaps a session the attendee has already selected — so two
+ * overlapping sessions can never both be picked (the conflict is blocked at
+ * selection, not deferred). A session the attendee has already selected is never
+ * disabled, even if it is now full ("last spot" taken by them) — so they can
+ * still deselect it. When disabled the card is greyed (surface-l2), the title is
+ * muted, and the checkbox is hidden.
  *
  * @typedef {Object} SessionCardProps
  * @property {import('../../types.js').Session} session
  * @property {boolean} selected
+ * @property {boolean} disabled
  */
 import { computed } from 'vue'
 import BaseCard from '../ui/BaseCard.vue'
@@ -27,6 +29,7 @@ const props = defineProps({
     required: true,
   },
   selected: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
 })
 
 defineEmits(['toggle'])
@@ -41,11 +44,7 @@ const TRACKS = {
 
 const track = computed(() => TRACKS[props.session.track] ?? { label: props.session.track, variant: 'neutral' })
 
-/** Full before the attendee is considered — no seat for them to take. */
-const baseFull = computed(() => props.session.registered >= props.session.capacity)
-/** Non-interactive + dimmed only when full and not the attendee's own pick. */
-const disabled = computed(() => baseFull.value && !props.selected)
-/** Registered count including the attendee's own reservation. */
+// Capacity counts the attendee's own reservation.
 const reserved = computed(() => props.session.registered + (props.selected ? 1 : 0))
 const spotsLeft = computed(() => Math.max(0, props.session.capacity - reserved.value))
 const isFull = computed(() => spotsLeft.value === 0)
@@ -59,17 +58,19 @@ const barColor = computed(() =>
 </script>
 
 <template>
-  <BaseCard :selected="selected" :disabled="disabled" role="checkbox" @select="$emit('toggle')">
+  <BaseCard :selected="selected" :disabled="disabled" disabled-bg="bg-surface-l2" role="checkbox" @select="$emit('toggle')">
     <div class="flex items-start justify-between gap-2">
       <Badge :variant="track.variant">{{ track.label }}</Badge>
+      <!-- Checkbox is hidden when disabled (sold out / time-conflict). -->
       <q-icon
+        v-if="!disabled"
         :name="selected ? 'check_box' : 'check_box_outline_blank'"
         size="22px"
         :class="selected ? 'text-brand-emphasis' : 'text-neutral-quiet'"
       />
     </div>
 
-    <span class="text-subtitle1 text-neutral">{{ session.title }}</span>
+    <span class="text-subtitle1" :class="disabled ? 'text-neutral-disabled' : 'text-neutral'">{{ session.title }}</span>
     <span class="text-md text-neutral-muted">{{ session.speaker }} · {{ session.speakerTitle }}</span>
     <span class="text-md text-neutral flex items-center gap-1">
       <q-icon name="schedule" size="16px" class="text-neutral-muted" />

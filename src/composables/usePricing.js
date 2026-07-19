@@ -68,18 +68,6 @@ export function computePricing({ ticket, workshops, meals, merch, isVip }) {
     lines.push({ id: w.id, label: w.name, amount: w.price, kind: "workshop" });
   }
 
-  const workshopDiscount = isVip
-    ? cents(workshopsGross * VIP_WORKSHOP_DISCOUNT)
-    : 0;
-  if (workshopDiscount > 0) {
-    lines.push({
-      id: "vip-workshop-discount",
-      label: "VIP workshop discount (10%)",
-      amount: -workshopDiscount,
-      kind: "discount",
-    });
-  }
-
   for (const m of meals) {
     lines.push({ id: m.id, label: m.name, amount: m.price, kind: "meal" });
   }
@@ -91,6 +79,18 @@ export function computePricing({ ticket, workshops, meals, merch, isVip }) {
       amount: cents(item.price * qty),
       kind: "merch",
       qty,
+    });
+  }
+
+  const workshopDiscount = isVip
+    ? cents(workshopsGross * VIP_WORKSHOP_DISCOUNT)
+    : 0;
+  if (workshopDiscount > 0) {
+    lines.push({
+      id: "vip-workshop-discount",
+      label: "Workshop discount (VIP 10%)",
+      amount: -workshopDiscount,
+      kind: "discount",
     });
   }
 

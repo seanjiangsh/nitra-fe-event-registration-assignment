@@ -312,3 +312,93 @@ meals, merch with qty + size), shipping banner, live order summary; currency.
   selection is conveyed by the brand bg + border. The conflict reason ("Overlaps
   …") is a separate `conflictNote` prop. Verified ws1 8→7 on select, ws2 "Sold
   Out", no "Added to order" on any workshop.
+
+### Stage 7 · Step 4 review + unified validation
+
+**Prompt**: deferred/unified validation, the review summary with edit links +
+itemized pricing, submit gate with jump-to-first-error, field/step error UI, and
+the session-conflict check surfaced (S2.2).
+
+**Claude (first pass)**
+
+- **Rules are pure and tested first.** `useValidation.js` holds email/US-NANP
+  phone checks + `validateAttendee` (required + ticket + shipping-iff-merch),
+  `validateSessions` (overlaps, reusing `sessionConflictPairs`), and
+  `validateMerch` (size when the item has sizes). Verified in Node before any UI.
+- **Deferred + unified in the store.** `errorsByStep`/`isValid`/`firstErrorStep`
+  are always computed, but a `submitAttempted` flag (set by `submit()`) gates
+  when the UI shows them, then it re-validates reactively as fields are fixed.
+- **Error surfaces.** `TextField` gained an `error` prop (danger border + message
+  + `aria-invalid`/`aria-describedby`); `StepperHeader` flags failing steps with a
+  red dot + `!` icon; Step 2 shows a `q-banner` listing overlaps (S2.2); Step 3's
+  `MerchCard` shows a size error + danger select. `Step4Review` is the summary
+  (S4.1): attendee `dl`, a `q-timeline` of sessions in UTC order, an add-ons list,
+  the shared `OrderSummary` for itemized pricing (S4.2), per-section `Edit` links
+  back to each step (S4.3), a top error banner (S4.4), and danger section borders.
+- **Submit gate (S4.5).** The layout's `onSubmit` calls `store.submit()` and, on
+  failure, jumps to the lowest failing step. Verified end-to-end: a multi-error
+  registration jumped to Step 1 with 6 `aria-invalid` fields + messages (incl.
+  shipping-required-because-merch, email/phone format), ticket error, and 3
+  stepper dots; the Step 2 overlap banner; the Step 3 merch size error; the review
+  banner listing all 9 errors with all 3 sections danger-bordered; and a fully
+  valid registration submitting clean (no jump — success redirect is stage 8).
+- **Verification note.** The step `<transition mode="out-in">` stalls in the
+  headless pane (paused rAF, as in stage 3), so it was temporarily removed to
+  drive the cross-step error flow, then restored. Delivered the planned Quasar
+  wins: `q-banner` (error banners); kept the custom `TextField` and added its
+  error state rather than swapping in `q-input`.
+
+**Human review (caught — review design + shipping states)**
+
+- **Shipping-address conditional states** (design capture): the label is
+  "Shipping address (optional)" with no merch and "Shipping address \*" (new
+  `required` prop on `TextField` → red asterisk) once merch is added; after
+  validation activates it also turns the label red + shows the danger border +
+  "Shipping address is required for merchandise orders." Verified all three.
+- **Review layout to match the capture**: sessions are a plain list (left =
+  "Nov 15, 9:00 AM", right = title) — dropped `q-timeline`, which didn't fit;
+  add-ons are left = kind / right = "Title ($price)"; ticket reads "VIP ($599)"
+  (new `formatCompact` — no cents for inline references); the Edit links read
+  "Edit → Step N"; and the summary card gained `title`/`totalLabel` props so the
+  review shows "Pricing Summary" / "Grand Total" while the Step 3 sidebar keeps
+  "Order Summary" / "Total". (Also removed a stray `console.log` and a broken
+  `text-neutral-default` class from the summary.)
+- **Validate on entering Review + disable Submit** — asked whether the spec has
+  it: it doesn't (§7 defers to the submit *click*). Implemented it anyway as the
+  better UX: reaching `/review` flips `submitAttempted` on (banner + stepper
+  flags + danger borders appear) and the footer's Submit is `:disabled` until
+  `isValid`. Verified: invalid → Submit disabled (opacity 0.6) + banner shown;
+  valid → enabled + banner gone.
+- **Attendee summary is one row per line** (was a 2-col grid): label left,
+  value right-aligned. An empty required field shows "— (required)" (danger) —
+  and "— (required for merchandise)" for shipping when merch is selected — only
+  once validation is active. Verified all 7 rows against the capture.
+- **Hidden Figma rule: overlaps are blocked at selection, not deferred.** A
+  session whose time overlaps an already-selected one is now *disabled* (parent-
+  computed `sessionDisabled`), greyed (`disabledBg="bg-surface-l2"`, a new
+  `BaseCard` prop), title `text-neutral-disabled`, and its checkbox hidden — the
+  same treatment sold-out already gets. A session the attendee has selected is
+  never disabled (last-spot exception). Consequences: a selected set can never
+  overlap, so **removed** the Step 2 "Some selected sessions overlap" banner and
+  the Step 4 session-overlap validation (`validateSessions` gone; step 2 is
+  always `[]`). Verified: selecting s4 disabled+greyed s5 (no checkbox);
+  deselecting s4 re-enabled it; sold-out s2 also loses its checkbox; no banner.
+- **Edit link per Figma spec** (12px / weight 610 / underline / `#3A7679`): mapped
+  to `text-sm` + `font-semibold` (this system's semibold = 610) + `underline` +
+  an arbitrary `text-[#3A7679]` (that colour has no semantic token — an
+  intentional exception). Verified computed `rgb(58,118,121)`, 12px, 610.
+- **App font was Roboto, not Inter (caught in verify).** The Figma is Inter but
+  Quasar's default Roboto was rendering — Inter wasn't loaded anywhere. Added
+  `@fontsource-variable/inter` (variable font, so the design's non-standard weights
+  485/570/610/630 render exactly) and set the family on `#q-app` in `App.vue`
+  (ID specificity beats Quasar's `body` rule; the proper spots — quasar.config /
+  src/css — are the untouched provided files). Verified: `h2`/edit-link compute to
+  "Inter Variable" and the latin face loads. First (chosen) runtime dependency.
+- **Two conflict/validation bugs caught.** (1) The session-vs-workshop conflict
+  was one-directional — selecting a session disabled a clashing workshop, but not
+  vice-versa. `sessionDisabled` now also checks selected *workshops*, so selecting
+  ws1 disables s11/s12 in Step 2 (verified; s7 unaffected). (2) The review's
+  attendee rows keyed the danger state off *emptiness*, so a present-but-invalid
+  field (bad email) showed plain, not red. Rewired the rows to the actual
+  `errorsByStep[1]`: empty → "— (required…)", present-but-invalid → "value (invalid
+  email/phone)", both red. Verified `notanemail (invalid email)` in red.

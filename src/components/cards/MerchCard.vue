@@ -22,6 +22,7 @@ defineProps({
   },
   qty: { type: Number, default: 0 },
   size: { type: String, default: '' },
+  error: { type: String, default: '' },
 })
 
 const emit = defineEmits(['increment', 'decrement', 'update:size'])
@@ -48,7 +49,8 @@ function onSizeChange(/** @type {Event} */ e) {
         <select
           :id="`size-${item.id}`"
           :value="size"
-          class="px-2 py-1 rounded-md border border-solid border-neutral-muted bg-surface-l0 text-sm text-neutral cursor-pointer hover:border-neutral-emphasis focus:border-brand-emphasis focus:outline-none"
+          class="px-2 py-1 rounded-md border border-solid bg-surface-l0 text-sm text-neutral cursor-pointer focus:outline-none"
+          :class="error ? 'border-danger-emphasis' : 'border-neutral-muted hover:border-neutral-emphasis focus:border-brand-emphasis'"
           @change="onSizeChange"
         >
           <option value="" disabled>Select</option>
@@ -81,7 +83,8 @@ function onSizeChange(/** @type {Event} */ e) {
       </div>
     </div>
 
-    <span v-if="qty > 0" class="flex items-center gap-1 text-sm font-medium text-success">
+    <span v-if="error" class="text-sm font-medium text-danger-emphasis">{{ error }}</span>
+    <span v-else-if="qty > 0" class="flex items-center gap-1 text-sm font-medium text-success">
       <q-icon name="check" size="14px" /> Added to order
     </span>
   </BaseCard>

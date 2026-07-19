@@ -5,31 +5,55 @@
  * formatter (S3.6). Built on Quasar's `q-card` / `q-list` / `q-item` for the
  * panel + line-item structure, styled with design tokens.
  */
-import { useRegistration } from '../../composables/useRegistration.js'
-import { format } from '../../composables/useCurrency.js'
+import { useRegistration } from "../../composables/useRegistration.js";
+import { format } from "../../composables/useCurrency.js";
 
-const { pricing } = useRegistration()
+// Title/total labels differ by context: "Order Summary" / "Total" in the Step 3
+// sidebar (defaults), "Pricing Summary" / "Grand Total" on the review step.
+defineProps({
+  title: { type: String, default: "Order Summary" },
+  totalLabel: { type: String, default: "Total" },
+});
+
+const { pricing } = useRegistration();
 </script>
 
 <template>
   <q-card flat class="!rounded-md bg-surface-l1">
     <q-card-section class="pb-2">
-      <h2 class="text-subtitle1 text-neutral m-0">Order Summary</h2>
+      <h2 class="text-subtitle1 text-neutral m-0">{{ title }}</h2>
     </q-card-section>
 
     <q-card-section v-if="pricing.lines.length === 0" class="pt-0">
-      <p class="text-md text-neutral-muted m-0">Nothing selected yet.</p>
+      <p class="text-sm text-neutral-muted m-0">Nothing selected yet.</p>
     </q-card-section>
 
     <q-list v-else class="pb-1">
       <q-item v-for="line in pricing.lines" :key="line.id" dense class="px-4">
         <q-item-section>
-          <span class="text-md" :class="line.kind === 'discount' ? 'text-success' : 'text-neutral-muted'">
-            {{ line.label }}<span v-if="line.qty" class="text-neutral-quiet"> &times;{{ line.qty }}</span>
+          <span
+            class="text-sm"
+            :class="
+              line.kind === 'discount'
+                ? 'text-brand-emphasis'
+                : 'text-neutral-muted'
+            "
+          >
+            {{ line.kind === "ticket" ? `${line.label} Ticket` : line.label }}
+            <span v-if="line.qty" class="text-neutral-quiet">
+              &times;{{ line.qty }}
+            </span>
           </span>
         </q-item-section>
         <q-item-section side>
-          <span class="text-md font-medium" :class="line.kind === 'discount' ? 'text-success' : 'text-neutral'">
+          <span
+            class="text-sm"
+            :class="
+              line.kind === 'discount'
+                ? 'text-brand-emphasis'
+                : 'text-neutral-muted'
+            "
+          >
             {{ format(line.amount) }}
           </span>
         </q-item-section>
@@ -39,8 +63,8 @@ const { pricing } = useRegistration()
     <q-separator class="!bg-[var(--divider-default)]" />
 
     <q-card-section class="flex items-baseline justify-between py-3">
-      <span class="text-md font-semibold text-neutral">Total</span>
-      <span class="text-subtitle1 font-bold text-brand-emphasis">{{ format(pricing.grandTotal) }}</span>
+      <span class="text-md font-semibold text-neutral">{{ totalLabel }}</span>
+      <span class="text-md font-semibold text-neutral">{{ format(pricing.grandTotal) }}</span>
     </q-card-section>
   </q-card>
 </template>

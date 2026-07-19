@@ -12,6 +12,13 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+/** Compact formatter (no cents) for inline references like "VIP ($599)". */
+const usdCompactFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
 /**
  * Format a number as USD, e.g. `1234.5` -> `"$1,234.50"`.
  *
@@ -23,10 +30,22 @@ export function format(amount) {
 }
 
 /**
+ * Format a whole-dollar amount without cents, e.g. `599` -> `"$599"`. Used for
+ * the compact parenthesised prices in the review (tickets / add-ons); the
+ * itemised totals keep the full `format`.
+ *
+ * @param {number} amount
+ * @returns {string}
+ */
+export function formatCompact(amount) {
+  return usdCompactFormatter.format(amount);
+}
+
+/**
  * Currency helpers.
  *
- * @returns {{ format: (amount: number) => string }}
+ * @returns {{ format: (amount: number) => string, formatCompact: (amount: number) => string }}
  */
 export function useCurrency() {
-  return { format };
+  return { format, formatCompact };
 }

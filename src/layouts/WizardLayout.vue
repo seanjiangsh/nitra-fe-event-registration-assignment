@@ -11,25 +11,33 @@
  * easing/animation polish is stage 10.
  */
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { provideRegistration } from '../composables/useRegistration.js'
+import { STEPS } from '../router/steps.js'
 import { EVENT } from '../data.js'
 import StepperHeader from '../components/ui/StepperHeader.vue'
 import WizardFooter from '../components/ui/WizardFooter.vue'
 
 // Create + provide the store once, here at the shell root (§4).
-provideRegistration()
+const store = provideRegistration()
 
 const route = useRoute()
+const router = useRouter()
 
 // The header and footer are sticky (fixed height); only <main> scrolls. Reset
 // its scroll to the top on every step change so a new step starts at the top.
 const scrollMain = ref(/** @type {HTMLElement | null} */ (null))
 watch(
   () => route.path,
-  () => {
+  (path) => {
     if (scrollMain.value) scrollMain.value.scrollTop = 0
+    // Reaching the review step activates validation (error banner + stepper
+    // flags + the submit gate). This goes beyond the spec's submit-click model
+    // (§7) but is better UX: the user sees what's missing and Submit stays
+    // disabled until it's fixed.
+    if (path === '/review') store.submitAttempted.value = true
   },
+  { immediate: true },
 )
 
 /**
@@ -44,9 +52,17 @@ function transitionName(route) {
   return typeof route.meta.transition === 'string' ? route.meta.transition : 'fade'
 }
 
-/** Placeholder submit handler — validation + submit gate arrive in stage 7. */
+/**
+ * Unified submit gate (S4.4/S4.5). Validate everything at once; if anything
+ * fails, mark the attempt (which reveals errors + stepper flags) and jump to the
+ * lowest failing step. On success the registration is submitted — the success
+ * screen + redirect are wired in stage 8.
+ */
 function onSubmit() {
-  // no-op for now; stage 7 wires unified validation and the submit gate
+  const { ok, firstErrorStep } = store.submit()
+  if (!ok && firstErrorStep) {
+    router.push(STEPS[firstErrorStep - 1].path)
+  }
 }
 </script>
 

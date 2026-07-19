@@ -21,6 +21,8 @@ const props = defineProps({
   interactive: { type: Boolean, default: true },
   /** Background utility class when NOT selected (ticket cards opt into surface-l1). */
   restBg: { type: String, default: 'bg-surface-l0' },
+  /** Background utility class when disabled + not selected (sessions use surface-l2). */
+  disabledBg: { type: String, default: 'bg-surface-l0 opacity-60' },
   /** ARIA role when interactive. */
   role: {
     type: /** @type {import('vue').PropType<'radio' | 'checkbox'>} */ (String),
@@ -44,9 +46,9 @@ function activate() {
     :disabled="interactive && disabled ? true : undefined"
     class="card-shell appearance-none border-0 flex flex-col gap-3 p-4 w-full text-left rounded-md transition-all"
     :class="[
-      selected ? 'is-selected bg-brand-muted-rest' : restBg,
+      selected ? 'is-selected bg-brand-muted-rest' : disabled ? disabledBg : restBg,
       disabled
-        ? 'is-disabled opacity-60 cursor-not-allowed'
+        ? 'is-disabled cursor-not-allowed'
         : interactive
           ? 'is-interactive cursor-pointer'
           : '',

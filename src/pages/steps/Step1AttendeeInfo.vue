@@ -5,12 +5,23 @@
  * `registration.attendee`. No inline validation (S1.noInline): fields simply
  * capture input; all rules fire on Step 4 submit (stage 7).
  */
+import { computed } from "vue";
 import { useRegistration } from "../../composables/useRegistration.js";
 import { TICKETS } from "../../data.js";
 import TicketCard from "../../components/cards/TicketCard.vue";
 import TextField from "../../components/ui/TextField.vue";
 
-const { registration } = useRegistration();
+const { registration, hasMerch, submitAttempted, errorsByStep } = useRegistration();
+
+/** Field → message map for Step 1, only after a submit was attempted (§7). */
+const fieldErrors = computed(() => {
+  /** @type {Record<string, string>} */
+  const map = {};
+  if (submitAttempted.value) {
+    for (const e of errorsByStep.value[1]) map[e.field] = e.message;
+  }
+  return map;
+});
 
 /** @param {string} id */
 function selectTicket(id) {
@@ -36,6 +47,7 @@ function selectTicket(id) {
           @select="selectTicket(ticket.id)"
         />
       </div>
+      <p v-if="fieldErrors.ticket" class="text-sm text-danger-emphasis m-0">{{ fieldErrors.ticket }}</p>
     </div>
 
     <!-- Attendee details -->
@@ -48,6 +60,7 @@ function selectTicket(id) {
           label="Full name"
           autocomplete="name"
           placeholder="Enter your full name"
+          :error="fieldErrors.fullName"
         />
         <TextField
           id="email"
@@ -56,6 +69,7 @@ function selectTicket(id) {
           type="email"
           autocomplete="email"
           placeholder="Enter your email"
+          :error="fieldErrors.email"
         />
         <TextField
           id="phone"
@@ -64,6 +78,7 @@ function selectTicket(id) {
           type="tel"
           autocomplete="tel"
           placeholder="Enter your phone number"
+          :error="fieldErrors.phone"
         />
         <TextField
           id="company"
@@ -71,6 +86,7 @@ function selectTicket(id) {
           label="Company"
           autocomplete="organization"
           placeholder="Enter your company name"
+          :error="fieldErrors.company"
         />
         <TextField
           id="jobTitle"
@@ -79,14 +95,17 @@ function selectTicket(id) {
           label="Job title"
           autocomplete="organization-title"
           placeholder="Enter your job title"
+          :error="fieldErrors.jobTitle"
         />
         <TextField
           id="shippingAddress"
           v-model="registration.attendee.shippingAddress"
           class="col-span-2"
-          label="Shipping address (optional)"
+          :label="hasMerch ? 'Shipping address' : 'Shipping address (optional)'"
+          :required="hasMerch"
           autocomplete="street-address"
           placeholder="Enter your shipping address"
+          :error="fieldErrors.shippingAddress"
         />
       </div>
     </div>

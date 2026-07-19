@@ -11,12 +11,19 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { STEPS, stepIndex } from '../../router/steps.js'
+import { useRegistration } from '../../composables/useRegistration.js'
 
 const route = useRoute()
 const router = useRouter()
+const { submitAttempted, errorsByStep } = useRegistration()
 
 /** Index of the active step (-1 on non-step routes). */
 const activeIndex = computed(() => stepIndex(route.path))
+
+/** A step is flagged once a submit was attempted and it still has errors (S4.5). */
+function stepHasError(/** @type {number} */ order) {
+  return submitAttempted.value && (errorsByStep.value[order]?.length ?? 0) > 0
+}
 
 /** @param {import('../../router/steps.js').WizardStep} step */
 function go(step) {
@@ -37,18 +44,27 @@ function go(step) {
           <span
             class="flex items-center justify-center w-7 h-7 rounded-full text-md font-semibold transition-colors"
             :class="
-              i === activeIndex
-                ? 'bg-brand-emphasis-rest text-inverse'
-                : i < activeIndex
-                  ? 'bg-brand-muted-rest text-brand-emphasis'
-                  : 'bg-neutral-muted-rest text-neutral-muted'
+              stepHasError(step.order)
+                ? 'bg-danger-emphasis-rest text-inverse'
+                : i === activeIndex
+                  ? 'bg-brand-emphasis-rest text-inverse'
+                  : i < activeIndex
+                    ? 'bg-brand-muted-rest text-brand-emphasis'
+                    : 'bg-neutral-muted-rest text-neutral-muted'
             "
           >
-            {{ step.order }}
+            <q-icon v-if="stepHasError(step.order)" name="priority_high" size="16px" />
+            <template v-else>{{ step.order }}</template>
           </span>
           <span
             class="text-md"
-            :class="i === activeIndex ? 'text-neutral font-semibold' : 'text-neutral-muted font-medium'"
+            :class="
+              stepHasError(step.order)
+                ? 'text-danger-emphasis font-semibold'
+                : i === activeIndex
+                  ? 'text-neutral font-semibold'
+                  : 'text-neutral-muted font-medium'
+            "
           >
             {{ step.label }}
           </span>

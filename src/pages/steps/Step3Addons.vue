@@ -7,74 +7,91 @@
  * (S3.4) — kept in the layout so adding merch doesn't shift the page. The live
  * order summary (S3.5/.6) sits alongside. Active tab is kept alive across nav.
  */
-import { ref, watch } from 'vue'
-import { useRegistration } from '../../composables/useRegistration.js'
-import { WORKSHOPS, MEALS, MERCH } from '../../data.js'
-import { overlaps } from '../../composables/useTimeConflicts.js'
-import SegmentedTabs from '../../components/ui/SegmentedTabs.vue'
-import WorkshopCard from '../../components/cards/WorkshopCard.vue'
-import MealCard from '../../components/cards/MealCard.vue'
-import MerchCard from '../../components/cards/MerchCard.vue'
-import OrderSummary from '../../components/ui/OrderSummary.vue'
+import { ref, watch } from "vue";
+import { useRegistration } from "../../composables/useRegistration.js";
+import { WORKSHOPS, MEALS, MERCH } from "../../data.js";
+import { overlaps } from "../../composables/useTimeConflicts.js";
+import SegmentedTabs from "../../components/ui/SegmentedTabs.vue";
+import WorkshopCard from "../../components/cards/WorkshopCard.vue";
+import MealCard from "../../components/cards/MealCard.vue";
+import MerchCard from "../../components/cards/MerchCard.vue";
+import OrderSummary from "../../components/ui/OrderSummary.vue";
 
-const { registration, selectedSessions } = useRegistration()
+const { registration, selectedSessions, submitAttempted, errorsByStep } =
+  useRegistration();
+
+/** Merch integrity error for an item, surfaced after submit (§7). */
+function merchError(/** @type {import('../../types.js').MerchItem} */ item) {
+  if (!submitAttempted.value) return "";
+  return errorsByStep.value[3].find((e) => e.field === item.id)?.message ?? "";
+}
 
 const TABS = [
-  { id: 'workshops', label: 'Workshops' },
-  { id: 'meals', label: 'Meal Packages' },
-  { id: 'merch', label: 'Merchandise' },
-]
-const activeTab = ref('workshops')
+  { id: "workshops", label: "Workshops" },
+  { id: "meals", label: "Meal Packages" },
+  { id: "merch", label: "Merchandise" },
+];
+const activeTab = ref("workshops");
 
 // Direction-aware content slide when switching category.
-const contentDir = ref('next')
+const contentDir = ref("next");
 watch(activeTab, (to, from) => {
-  const toI = TABS.findIndex((t) => t.id === to)
-  const fromI = TABS.findIndex((t) => t.id === from)
-  contentDir.value = toI >= fromI ? 'next' : 'prev'
-})
+  const toI = TABS.findIndex((t) => t.id === to);
+  const fromI = TABS.findIndex((t) => t.id === from);
+  contentDir.value = toI >= fromI ? "next" : "prev";
+});
 
 // ── Workshop availability (live) ──
-const isSoldOut = (/** @type {import('../../types.js').Workshop} */ w) => w.registered >= w.capacity
-const isWorkshopSelected = (/** @type {import('../../types.js').Workshop} */ w) =>
-  registration.selectedWorkshopIds.includes(w.id)
+const isSoldOut = (/** @type {import('../../types.js').Workshop} */ w) =>
+  w.registered >= w.capacity;
+const isWorkshopSelected = (
+  /** @type {import('../../types.js').Workshop} */ w,
+) => registration.selectedWorkshopIds.includes(w.id);
 /** First selected session this workshop overlaps, or null. */
-const conflictingSession = (/** @type {import('../../types.js').Workshop} */ w) =>
-  selectedSessions.value.find((s) => overlaps(w, s)) ?? null
+const conflictingSession = (
+  /** @type {import('../../types.js').Workshop} */ w,
+) => selectedSessions.value.find((s) => overlaps(w, s)) ?? null;
 
 /** Disabled when sold out, or overlapping a selected session (unless already the attendee's pick). */
 function workshopDisabled(/** @type {import('../../types.js').Workshop} */ w) {
-  return isSoldOut(w) || (!!conflictingSession(w) && !isWorkshopSelected(w))
+  return isSoldOut(w) || (!!conflictingSession(w) && !isWorkshopSelected(w));
 }
 /** Conflict reason shown on the card; sold-out is shown via the card's spots text. */
-function workshopConflictNote(/** @type {import('../../types.js').Workshop} */ w) {
-  const clash = conflictingSession(w)
-  return clash && !isWorkshopSelected(w) ? `Overlaps “${clash.title}”` : ''
+function workshopConflictNote(
+  /** @type {import('../../types.js').Workshop} */ w,
+) {
+  const clash = conflictingSession(w);
+  return clash && !isWorkshopSelected(w) ? `Overlaps “${clash.title}”` : "";
 }
 
 // ── Mutations ──
 function toggleId(/** @type {string[]} */ ids, /** @type {string} */ id) {
-  const i = ids.indexOf(id)
-  if (i === -1) ids.push(id)
-  else ids.splice(i, 1)
+  const i = ids.indexOf(id);
+  if (i === -1) ids.push(id);
+  else ids.splice(i, 1);
 }
-const toggleWorkshop = (/** @type {string} */ id) => toggleId(registration.selectedWorkshopIds, id)
-const toggleMeal = (/** @type {string} */ id) => toggleId(registration.selectedMealIds, id)
+const toggleWorkshop = (/** @type {string} */ id) =>
+  toggleId(registration.selectedWorkshopIds, id);
+const toggleMeal = (/** @type {string} */ id) =>
+  toggleId(registration.selectedMealIds, id);
 
 /** Step a merch item's qty from its LIVE store value (robust to rapid clicks), clamped to [0, max]. */
-function stepMerch(/** @type {import('../../types.js').MerchItem} */ item, /** @type {number} */ delta) {
-  const current = registration.merch[item.id]?.qty ?? 0
-  const next = Math.max(0, Math.min(current + delta, item.maxQuantity))
+function stepMerch(
+  /** @type {import('../../types.js').MerchItem} */ item,
+  /** @type {number} */ delta,
+) {
+  const current = registration.merch[item.id]?.qty ?? 0;
+  const next = Math.max(0, Math.min(current + delta, item.maxQuantity));
   if (next <= 0) {
-    delete registration.merch[item.id]
-    return
+    delete registration.merch[item.id];
+    return;
   }
-  const cur = registration.merch[item.id]
-  registration.merch[item.id] = cur ? { ...cur, qty: next } : { qty: next }
+  const cur = registration.merch[item.id];
+  registration.merch[item.id] = cur ? { ...cur, qty: next } : { qty: next };
 }
 function setMerchSize(/** @type {string} */ id, /** @type {string} */ size) {
-  const cur = registration.merch[id]
-  registration.merch[id] = cur ? { ...cur, size } : { qty: 1, size }
+  const cur = registration.merch[id];
+  registration.merch[id] = cur ? { ...cur, size } : { qty: 1, size };
 }
 </script>
 
@@ -84,19 +101,28 @@ function setMerchSize(/** @type {string} */ id, /** @type {string} */ size) {
     <div class="flex-1 min-w-0 flex flex-col gap-6">
       <h2 class="text-h3 text-neutral m-0">Select Add-ons</h2>
 
-      <SegmentedTabs v-model="activeTab" :options="TABS" aria-label="Add-on category" />
+      <SegmentedTabs
+        v-model="activeTab"
+        :options="TABS"
+        aria-label="Add-on category"
+      />
 
       <!-- Shipping info (S3.4) — always present so adding merch doesn't shift layout -->
-      <q-banner class="bg-info-subtle-rest !rounded-md text-neutral">
-        <template #avatar>
-          <q-icon name="info" class="text-info-emphasis" />
-        </template>
-        <span class="text-subtitle2 text-neutral block">Shipping Information</span>
-        <span class="text-md text-neutral-muted">
-          Merchandise items will be shipped to your address one week before the conference. Please ensure your shipping
-          address in Step 1 is correct.
-        </span>
-      </q-banner>
+      <template v-if="activeTab === 'merch'">
+        <q-banner class="bg-info-subtle-rest !rounded-md text-neutral">
+          <template #avatar>
+            <q-icon name="info" class="text-info-emphasis" />
+          </template>
+          <span class="text-subtitle2 text-neutral block"
+            >Shipping Information</span
+          >
+          <span class="text-md text-neutral-muted">
+            Merchandise items will be shipped to your address one week before
+            the conference. Please ensure your shipping address in Step 1 is
+            correct.
+          </span>
+        </q-banner>
+      </template>
 
       <!-- Category content (row list) with a direction-aware slide on switch -->
       <div
@@ -133,6 +159,7 @@ function setMerchSize(/** @type {string} */ id, /** @type {string} */ size) {
             :item="item"
             :qty="registration.merch[item.id]?.qty ?? 0"
             :size="registration.merch[item.id]?.size ?? ''"
+            :error="merchError(item)"
             @increment="stepMerch(item, 1)"
             @decrement="stepMerch(item, -1)"
             @update:size="setMerchSize(item.id, $event)"

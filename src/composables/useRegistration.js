@@ -11,9 +11,10 @@
  * @module composables/useRegistration
  */
 
-import { reactive, computed, watch, provide, inject } from 'vue'
+import { reactive, ref, computed, watch, provide, inject } from 'vue'
 import { TICKETS, SESSIONS, WORKSHOPS, MEALS, MERCH } from '../data.js'
 import { computePricing } from './usePricing.js'
+import { computeErrorsByStep } from './useValidation.js'
 import { hydrate, persist, clearPersisted } from './useRegistrationPersistence.js'
 
 /**
@@ -40,6 +41,11 @@ const isPresent = (value) => value != null
  * @property {import('vue').ComputedRef<import('../types.js').Meal[]>} selectedMeals
  * @property {import('vue').ComputedRef<Array<{ item: import('../types.js').MerchItem, qty: number, size?: string }>>} selectedMerch
  * @property {import('vue').ComputedRef<import('./usePricing.js').PricingResult>} pricing
+ * @property {import('vue').Ref<boolean>} submitAttempted
+ * @property {import('vue').ComputedRef<Record<number, import('../types.js').ValidationError[]>>} errorsByStep
+ * @property {import('vue').ComputedRef<boolean>} isValid
+ * @property {import('vue').ComputedRef<number | null>} firstErrorStep
+ * @property {() => { ok: boolean, firstErrorStep: number | null }} submit
  * @property {() => void} reset
  */
 
@@ -129,9 +135,37 @@ export function createRegistrationStore() {
     }),
   )
 
+  // ── Validation (§7) ──
+  // Deferred and unified: errors are always computed, but the UI only shows them
+  // once `submitAttempted` flips on the first Step 4 submit, then re-validates
+  // reactively as the user fixes fields.
+  const submitAttempted = ref(false)
+
+  const errorsByStep = computed(() =>
+    computeErrorsByStep({
+      registration,
+      hasMerch: hasMerch.value,
+      selectedMerch: selectedMerch.value,
+    }),
+  )
+  const isValid = computed(() => Object.values(errorsByStep.value).every((list) => list.length === 0))
+  const firstErrorStep = computed(() => {
+    for (const step of [1, 2, 3, 4]) {
+      if (errorsByStep.value[step]?.length) return step
+    }
+    return null
+  })
+
+  /** Mark that a submit was attempted and report the gate result (S4.4/S4.5). */
+  function submit() {
+    submitAttempted.value = true
+    return { ok: isValid.value, firstErrorStep: firstErrorStep.value }
+  }
+
   /** Clear the store and its persisted copy — the only full state wipe (§4.3). */
   function reset() {
     Object.assign(registration, createInitialState())
+    submitAttempted.value = false
     clearPersisted()
   }
 
@@ -148,6 +182,11 @@ export function createRegistrationStore() {
     selectedMeals,
     selectedMerch,
     pricing,
+    submitAttempted,
+    errorsByStep,
+    isValid,
+    firstErrorStep,
+    submit,
     reset,
   }
 }
