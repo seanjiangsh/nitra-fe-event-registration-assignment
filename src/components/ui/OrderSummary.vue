@@ -63,9 +63,37 @@ const { pricing } = useRegistration();
 
     <q-card-section class="flex items-baseline justify-between py-4">
       <span class="text-sm font-semibold text-neutral">{{ totalLabel }}</span>
-      <span class="text-sm font-semibold text-neutral">{{
-        format(pricing.grandTotal)
-      }}</span>
+      <!-- Re-keying by value replays the flash keyframe whenever the total changes. -->
+      <span
+        :key="pricing.grandTotal"
+        class="total-flash inline-block text-sm font-semibold text-neutral"
+        >{{ format(pricing.grandTotal) }}</span
+      >
     </q-card-section>
   </q-card>
 </template>
+
+<style scoped>
+/* Brief pop + brand-colour pulse when the grand total changes (stage 10). */
+.total-flash {
+  animation: total-flash 320ms ease-out;
+  transform-origin: right center;
+}
+@keyframes total-flash {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.09);
+    color: var(--text-brand-emphasis);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .total-flash {
+    animation: none;
+  }
+}
+</style>

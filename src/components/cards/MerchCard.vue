@@ -86,9 +86,11 @@ function onSizeChange(/** @type {Event} */ e) {
         >
           <q-icon name="remove" size="18px" />
         </button>
-        <span class="min-w-6 text-center text-md font-semibold text-neutral">{{
-          qty
-        }}</span>
+        <span
+          :key="qty"
+          class="qty-pop inline-block min-w-6 text-center text-md font-semibold text-neutral"
+          >{{ qty }}</span
+        >
         <button
           type="button"
           class="flex items-center justify-center w-8 h-8 rounded-md border-none bg-surface-l2 text-neutral cursor-pointer transition-colors hover:bg-neutral-muted-rest disabled:opacity-40 disabled:cursor-not-allowed"
@@ -115,3 +117,25 @@ function onSizeChange(/** @type {Event} */ e) {
     </span>
   </BaseCard>
 </template>
+
+<style scoped>
+/* Qty value pops when it changes (re-keyed span replays the keyframe). Stage 10. */
+.qty-pop {
+  animation: qty-pop 200ms ease-out;
+}
+@keyframes qty-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qty-pop {
+    animation: none;
+  }
+}
+</style>

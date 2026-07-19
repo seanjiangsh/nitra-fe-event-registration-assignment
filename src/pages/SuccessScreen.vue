@@ -63,6 +63,7 @@ function backToHome() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
+        class="success-pop"
       >
         <rect width="80" height="80" rx="40" fill="#15B471" />
         <path
@@ -74,15 +75,24 @@ function backToHome() {
         />
       </svg>
 
-      <h1 class="text-h2 text-success tracking-[0.015rem] m-0">
+      <h1
+        class="success-rise text-h2 text-success tracking-[0.015rem] m-0"
+        style="animation-delay: 90ms"
+      >
         Registration Complete!
       </h1>
 
-      <p class="text-lg font-semibold text-brand-emphasis m-0">
+      <p
+        class="success-rise text-lg font-semibold text-brand-emphasis m-0"
+        style="animation-delay: 150ms"
+      >
         Confirmation #{{ confirmationNumber }}
       </p>
 
-      <p class="text-md text-neutral-muted m-0">
+      <p
+        class="success-rise text-md text-neutral-muted m-0"
+        style="animation-delay: 210ms"
+      >
         Thank you<template v-if="attendeeName">, {{ attendeeName }}</template
         >! Your spot at {{ EVENT.name }} is confirmed.
         <template v-if="attendeeEmail">
@@ -92,7 +102,8 @@ function backToHome() {
 
       <button
         type="button"
-        class="mt-2 px-6 py-2.5 rounded-lg text-md font-semibold border-none text-inverse cursor-pointer transition-colors bg-accent-emphasis-rest hover:bg-accent-emphasis-hover active:bg-accent-emphasis-active"
+        class="success-rise mt-2 px-6 py-2.5 rounded-lg text-md font-semibold border-none text-inverse cursor-pointer transition-colors bg-accent-emphasis-rest hover:bg-accent-emphasis-hover active:bg-accent-emphasis-active"
+        style="animation-delay: 270ms"
         @click="backToHome"
       >
         Back to Home
@@ -101,3 +112,43 @@ function backToHome() {
     </main>
   </div>
 </template>
+
+<style scoped>
+/* Entrance choreography (stage 10): the mark springs in, then the copy rises in
+   a short stagger (delays set inline per element). */
+.success-pop {
+  animation: success-pop 440ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes success-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.success-rise {
+  animation: success-rise 360ms ease-out both;
+}
+@keyframes success-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .success-pop,
+  .success-rise {
+    animation: none;
+  }
+}
+</style>

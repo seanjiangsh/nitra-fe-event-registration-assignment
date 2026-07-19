@@ -513,3 +513,32 @@ a single Back-to-Home that resets to a fresh registration (§4.3, S4.6).
   ("Step 1: …") and the native `list-disc` marker was replaced with a flex row +
   manual bullet so the dot↔text gap is a tunable `gap-*` (native marker spacing
   isn't controllable). Title reads "…following errors before submitting".
+
+### Stage 10 · Motion & transitions
+
+**Prompt**: add a slide left/right effect for the session day-tab switch, then a
+few more motion targets from §10.3 — listed for the human to verify.
+
+**Claude**
+
+- **Session day-tab slide.** Direction-aware slide+fade on the Step 2 day switch:
+  a `watch` on `activeDay` sets the direction from the tab-index delta (later day
+  → in from the right). First shipped as `<transition mode="out-in">`, then
+  **refactored to a CSS keyframe on a re-keyed div** to match the existing add-ons
+  category slide and avoid the out-in stall in a backgrounded tab (CSS animations
+  don't depend on `transitionend`). Verified the resolved `animation-name`.
+- **Order-summary total flash.** The grand total re-keys by value, replaying a
+  pop (scale 1.09) + brand-colour pulse whenever it changes. Verified live: total
+  $299 → $334 on adding merch, keyframe applied.
+- **Merch qty pop.** The quantity number re-keys by `qty`, popping (scale 0.7→1)
+  on each +/- . Verified applied on increment.
+- **Success-screen entrance.** The check mark springs in (scale 0.2→1.08→1), then
+  the heading/confirmation/message/button rise in a short inline-delay stagger.
+  Wired (mount-time); left for the human to eyeball since `/success` is guarded.
+
+All four are CSS keyframes (robust, no JS transition-end dependency) and each is
+disabled under `prefers-reduced-motion`. `vue-tsc` clean.
+
+**Human**
+
+- Reviewed the four animations in-browser ("nice looks good") before commit.

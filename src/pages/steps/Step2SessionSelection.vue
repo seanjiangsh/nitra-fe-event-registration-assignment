@@ -7,7 +7,7 @@
  * picked (the conflict is blocked here, not deferred to Step 4). The active day
  * is step-local UI state preserved by `<keep-alive>`.
  */
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRegistration } from "../../composables/useRegistration.js";
 import { SESSIONS, EVENT } from "../../data.js";
 import { formatDayShort } from "../../composables/useDateTime.js";
@@ -18,6 +18,19 @@ import SessionCard from "../../components/cards/SessionCard.vue";
 const { registration, selectedSessions, selectedWorkshops } = useRegistration();
 
 const activeDay = ref(EVENT.dates[0]);
+
+/**
+ * Direction of the day-panel slide, derived from the tab index delta: switching
+ * to a later day slides the new panel in from the right (`day-next`), an earlier
+ * day from the left (`day-prev`). Purely presentational (stage 10).
+ */
+const slideDir = ref("day-next");
+let prevDayIdx = EVENT.dates.indexOf(activeDay.value);
+watch(activeDay, (day) => {
+  const i = EVENT.dates.indexOf(day);
+  slideDir.value = i >= prevDayIdx ? "day-next" : "day-prev";
+  prevDayIdx = i;
+});
 
 /** Day options for the segmented switcher. */
 const dayTabs = computed(() =>
@@ -86,8 +99,14 @@ function toggleSession(id) {
       {{ selectedCount === 1 ? "session" : "sessions" }} selected
     </p>
 
-    <!-- Session grid -->
-    <div class="grid grid-cols-2 gap-4">
+    <!-- Session grid — slides left/right when the day tab changes (stage 10).
+         Re-keying by day + a CSS keyframe (not a JS <transition>) mirrors the
+         add-ons category slide and plays reliably even if the tab is backgrounded. -->
+    <div
+      :key="activeDay"
+      class="grid grid-cols-2 gap-4"
+      :class="slideDir === 'day-next' ? 'day-slide-next' : 'day-slide-prev'"
+    >
       <SessionCard
         v-for="session in daySessions"
         :key="session.id"
@@ -99,3 +118,40 @@ function toggleSession(id) {
     </div>
   </section>
 </template>
+
+<style scoped>
+/* Direction-aware day-panel slide (later day → in from the right). CSS animation,
+   so it degrades gracefully and doesn't depend on JS transition-end events. */
+.day-slide-next {
+  animation: day-slide-next 220ms ease-out;
+}
+.day-slide-prev {
+  animation: day-slide-prev 220ms ease-out;
+}
+@keyframes day-slide-next {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes day-slide-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .day-slide-next,
+  .day-slide-prev {
+    animation: none;
+  }
+}
+</style>
