@@ -145,6 +145,7 @@ export function createRegistrationStore() {
     computeErrorsByStep({
       registration,
       hasMerch: hasMerch.value,
+      selectedSessions: selectedSessions.value,
       selectedMerch: selectedMerch.value,
     }),
   )

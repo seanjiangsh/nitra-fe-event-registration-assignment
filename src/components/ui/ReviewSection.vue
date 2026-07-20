@@ -31,11 +31,11 @@ const router = useRouter();
         {{ title }}
       </h3>
       <!-- Edit link per Figma: 12px / weight 610 (semibold) / underline. The
-           colour #3A7679 has no semantic token, so it's an intentional arbitrary. -->
+           colour #3A7679 is the `teal-500` primitive token (no semantic alias). -->
       <button
         v-if="editTo"
         type="button"
-        class="shrink-0 bg-transparent border-0 cursor-pointer p-0 text-sm font-semibold underline text-[#3A7679]"
+        class="shrink-0 bg-transparent border-0 cursor-pointer p-0 text-sm font-semibold underline text-teal-500"
         @click="router.push(editTo)"
       >
         Edit → Step {{ step }}

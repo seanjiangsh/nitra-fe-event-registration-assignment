@@ -1,21 +1,20 @@
 <script setup>
 /**
  * Step 2 — Session Selection (S2). Sessions grouped by UTC date (S2.1) with a
- * day switcher; each card is multi-select. A session is disabled (greyed, no
- * checkbox) when it is sold out (S2.3) OR its time overlaps a session the
- * attendee has already selected — so two overlapping sessions can never both be
- * picked (the conflict is blocked here, not deferred to Step 4). The active day
- * is step-local UI state preserved by `<keep-alive>`.
+ * day switcher; each card is multi-select. Selection is FREE (per spec): the
+ * only thing that disables a session is sold-out capacity (S2.3). Time conflicts
+ * between selected sessions are allowed here and validated at Step 4 (§7), where
+ * the review flags the overlapping picks. The active day is step-local UI state
+ * preserved by `<keep-alive>`.
  */
 import { ref, computed, watch } from "vue";
 import { useRegistration } from "../../composables/useRegistration.js";
 import { SESSIONS, EVENT } from "../../data.js";
 import { formatDayShort } from "../../composables/useDateTime.js";
-import { overlaps } from "../../composables/useTimeConflicts.js";
 import SegmentedTabs from "../../components/ui/SegmentedTabs.vue";
 import SessionCard from "../../components/cards/SessionCard.vue";
 
-const { registration, selectedSessions, selectedWorkshops } = useRegistration();
+const { registration } = useRegistration();
 
 const activeDay = ref(EVENT.dates[0]);
 
@@ -41,19 +40,13 @@ const isSelected = (/** @type {import('../../types.js').Session} */ s) =>
   registration.selectedSessionIds.includes(s.id);
 
 /**
- * A session is disabled when it's sold out or its time clashes with an
- * already-selected session OR workshop (the conflict is bidirectional — Step 3
- * disables a workshop that clashes with a selected session, and this disables a
- * session that clashes with a selected workshop). A session the attendee has
- * already picked is never disabled (they can still deselect it).
+ * A session is disabled only when it's sold out (S2.3) and the attendee hasn't
+ * already selected it (they can still deselect a full session they hold). Time
+ * conflicts do NOT disable — selection is free and overlaps are flagged at Step 4.
  */
 function sessionDisabled(/** @type {import('../../types.js').Session} */ s) {
   if (isSelected(s)) return false;
-  if (s.registered >= s.capacity) return true;
-  return (
-    selectedSessions.value.some((sel) => overlaps(s, sel)) ||
-    selectedWorkshops.value.some((w) => overlaps(s, w))
-  );
+  return s.registered >= s.capacity;
 }
 
 /** Sessions grouped by their UTC date (`YYYY-MM-DD`), in event-day order. */

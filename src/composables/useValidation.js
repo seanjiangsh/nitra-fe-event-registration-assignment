@@ -6,6 +6,7 @@
  *
  * @module composables/useValidation
  */
+import { sessionConflictPairs } from './useTimeConflicts.js'
 
 /** Email: local@domain.tld. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -59,8 +60,22 @@ export function validateAttendee(reg, hasMerch) {
   return errors
 }
 
-// Step 2 has no validation: overlapping sessions are blocked at selection (a
-// conflicting session is disabled), so a selected set can never overlap.
+/**
+ * Step 2 — session time conflicts (§6.1/§7). Selection in Step 2 is free (per the
+ * spec), so overlapping picks are allowed there and flagged here at submit: one
+ * error per conflicting pair, keyed to the later session so the review can mark
+ * the offending rows.
+ *
+ * @param {import('../types.js').Session[]} selectedSessions
+ * @returns {import('../types.js').ValidationError[]}
+ */
+export function validateSessions(selectedSessions) {
+  return sessionConflictPairs(selectedSessions).map(([a, b]) => ({
+    step: 2,
+    field: b.id,
+    message: `“${a.title}” overlaps “${b.title}”.`,
+  }))
+}
 
 /**
  * Step 3 — merch integrity: a size must be chosen for items that offer sizes
@@ -81,19 +96,19 @@ export function validateMerch(selectedMerch) {
 }
 
 /**
- * All validation errors, grouped by step. Step 2 is always empty (overlaps are
- * blocked at selection).
+ * All validation errors, grouped by step.
  *
  * @param {Object} input
  * @param {import('../types.js').RegistrationState} input.registration
  * @param {boolean} input.hasMerch
+ * @param {import('../types.js').Session[]} input.selectedSessions
  * @param {Array<{ item: import('../types.js').MerchItem, qty: number, size?: string }>} input.selectedMerch
  * @returns {Record<number, import('../types.js').ValidationError[]>}
  */
-export function computeErrorsByStep({ registration, hasMerch, selectedMerch }) {
+export function computeErrorsByStep({ registration, hasMerch, selectedSessions, selectedMerch }) {
   return {
     1: validateAttendee(registration, hasMerch),
-    2: [],
+    2: validateSessions(selectedSessions),
     3: validateMerch(selectedMerch),
     4: [],
   }

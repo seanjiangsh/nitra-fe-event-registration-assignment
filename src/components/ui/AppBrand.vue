@@ -17,7 +17,12 @@ import { EVENT } from "../../data.js";
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <rect width="40" height="40" rx="8" fill="#264D4F" />
+      <rect
+        width="40"
+        height="40"
+        rx="8"
+        fill="var(--bg-brand-emphasis-rest)"
+      />
       <path
         d="M26.9993 27.0114C15.7309 26.9789 19.3548 20.0092 13.0005 20.0001V12.9885C22.641 13.0026 20.0422 19.9899 26.9993 19.9998V27.0111V27.0114Z"
         fill="white"

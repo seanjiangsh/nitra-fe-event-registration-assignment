@@ -11,6 +11,7 @@ import { computed } from "vue";
 import { useRegistration } from "../../composables/useRegistration.js";
 import { format, formatCompact } from "../../composables/useCurrency.js";
 import { formatDayShort, formatTime } from "../../composables/useDateTime.js";
+import { sessionConflictPairs } from "../../composables/useTimeConflicts.js";
 import ReviewSection from "../../components/ui/ReviewSection.vue";
 import OrderSummary from "../../components/ui/OrderSummary.vue";
 
@@ -98,6 +99,18 @@ const sortedSessions = computed(() =>
 const sessionWhen = (/** @type {import('../../types.js').Session} */ s) =>
   `${formatDayShort(s.date)}, ${formatTime(s.date)}`;
 
+/** Ids of selected sessions that overlap another pick — flagged once validation is active (§7). */
+const conflictingSessionIds = computed(() => {
+  /** @type {Set<string>} */
+  const ids = new Set();
+  if (!submitAttempted.value) return ids;
+  for (const [a, b] of sessionConflictPairs(selectedSessions.value)) {
+    ids.add(a.id);
+    ids.add(b.id);
+  }
+  return ids;
+});
+
 const hasAddons = computed(
   () =>
     selectedWorkshops.value.length > 0 ||
@@ -176,8 +189,27 @@ const hasAddons = computed(
           :key="s.id"
           class="flex justify-between gap-6 text-sm"
         >
-          <span class="shrink-0 text-neutral-muted">{{ sessionWhen(s) }}</span>
-          <span class="text-right text-neutral">{{ s.title }}</span>
+          <span
+            class="shrink-0"
+            :class="
+              conflictingSessionIds.has(s.id)
+                ? 'text-danger'
+                : 'text-neutral-muted'
+            "
+            >{{ sessionWhen(s) }}</span
+          >
+          <span
+            class="text-right"
+            :class="
+              conflictingSessionIds.has(s.id)
+                ? 'text-danger font-medium'
+                : 'text-neutral'
+            "
+            >{{ s.title
+            }}<template v-if="conflictingSessionIds.has(s.id)">
+              — time conflict</template
+            ></span
+          >
         </li>
       </ul>
     </ReviewSection>
@@ -200,7 +232,7 @@ const hasAddons = computed(
         >
           <span class="shrink-0 text-neutral-muted">Workshop</span>
           <span class="text-right text-neutral"
-            >{{ w.name }} ({{ formatCompact(w.price) }})</span
+            >{{ w.name }} ({{ format(w.price) }})</span
           >
         </li>
         <li
@@ -210,7 +242,7 @@ const hasAddons = computed(
         >
           <span class="shrink-0 text-neutral-muted">Meal</span>
           <span class="text-right text-neutral"
-            >{{ m.name }} ({{ formatCompact(m.price) }})</span
+            >{{ m.name }} ({{ format(m.price) }})</span
           >
         </li>
         <li
@@ -223,7 +255,7 @@ const hasAddons = computed(
             {{ entry.item.name
             }}<template v-if="entry.size"> ({{ entry.size }})</template>
             &times;{{ entry.qty }} ({{
-              formatCompact(entry.item.price * entry.qty)
+              format(entry.item.price * entry.qty)
             }})
           </span>
         </li>

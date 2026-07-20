@@ -65,7 +65,12 @@ function backToHome() {
         aria-hidden="true"
         class="success-pop"
       >
-        <rect width="80" height="80" rx="40" fill="#15B471" />
+        <rect
+          width="80"
+          height="80"
+          rx="40"
+          fill="var(--bg-success-emphasis-rest)"
+        />
         <path
           d="M22 40L34.8571 54L58 26"
           stroke="white"

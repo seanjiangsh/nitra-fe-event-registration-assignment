@@ -4,13 +4,11 @@
  * (role="checkbox", keyboard-operable). Card shows title, speaker, UTC time,
  * track, and remaining spots (S2.4).
  *
- * `disabled` is decided by the parent and is true when the session is sold out
- * OR its time overlaps a session the attendee has already selected — so two
- * overlapping sessions can never both be picked (the conflict is blocked at
- * selection, not deferred). A session the attendee has already selected is never
- * disabled, even if it is now full ("last spot" taken by them) — so they can
- * still deselect it. When disabled the card is greyed (surface-l2), the title is
- * muted, and the checkbox is hidden.
+ * `disabled` is decided by the parent and is true only when the session is sold
+ * out (S2.3) and the attendee doesn't already hold it — a session they've picked
+ * is never disabled, so they can deselect it. Time conflicts do NOT disable here
+ * (selection is free; overlaps are flagged at Step 4). When disabled the card is
+ * greyed (surface-l2), the title is muted, and the checkbox is hidden.
  *
  * @typedef {Object} SessionCardProps
  * @property {import('../../types.js').Session} session

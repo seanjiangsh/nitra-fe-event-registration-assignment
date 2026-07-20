@@ -15,7 +15,7 @@
  */
 import { computed } from "vue";
 import BaseCard from "../ui/BaseCard.vue";
-import { formatCompact } from "../../composables/useCurrency.js";
+import { format } from "../../composables/useCurrency.js";
 import {
   formatDayShort,
   formatTimeRange,
@@ -62,7 +62,7 @@ const isFull = computed(() => spotsRemaining.value === 0);
         workshop.name
       }}</span>
       <span class="text-subtitle1 text-brand-emphasis shrink-0">{{
-        formatCompact(workshop.price)
+        format(workshop.price)
       }}</span>
     </div>
 

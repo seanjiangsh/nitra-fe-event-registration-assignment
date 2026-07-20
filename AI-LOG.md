@@ -542,3 +542,43 @@ disabled under `prefers-reduced-motion`. `vue-tsc` clean.
 **Human**
 
 - Reviewed the four animations in-browser ("nice looks good") before commit.
+
+### Stage 11 · Spec-compliance review pass
+
+**Prompt**: final review against the spec (Google Doc + assignment repo); raise
+concerns, then act on the agreed fixes.
+
+**Concerns raised → decisions**
+
+1. **Session time-conflicts were blocked at selection** (a drift from the spec
+   *and* from this plan's §6.1, which both say Step 2 selection is free and
+   conflicts are flagged at Step 4). → **Reverted to spec (option b).**
+2. **Currency**: add-on prices used the compact `$599` form; spec wants
+   `$X,XXX.XX`. → **Fixed for workshops + merch.**
+3. **Shipping banner** always-present on the merch tab (vs "when merch added").
+   → **Kept** (deliberate, prevents layout shift).
+4. **A few hardcoded hex** with token equivalents. → **Fixed.**
+
+**Claude**
+
+- **Sessions: free selection + Step-4 flag.** `sessionDisabled` now disables only
+  on sold-out capacity (no conflict blocking). Restored `validateSessions`
+  (reusing `sessionConflictPairs`) → Step 2 errors; the review now surfaces the
+  overlap in the banner ("Step 2: … overlaps …"), lights the stepper Step-2 error
+  dot, adds the section danger border, and marks each conflicting session row
+  "— time conflict". Removed the now-moot at-selection conflict hint from
+  `SessionCard`. Verified: two overlapping sessions are both selectable and the
+  conflict is flagged across all four surfaces at review.
+- **Currency.** `WorkshopCard`/`MerchCard` and the review add-on lines switched
+  `formatCompact` → `format` (`$149.00`, `$35.00`). Tickets keep the compact form
+  (not an add-on; can revisit if wanted).
+- **Hex → tokens.** Edit link `#3A7679` → `text-teal-500`; success mark
+  `#15B471` → `var(--bg-success-emphasis-rest)`; brand logo `#264D4F` →
+  `var(--bg-brand-emphasis-rest)`. Only shadow rgba + the `white` keyword remain.
+
+`vue-tsc` clean.
+
+**Human**
+
+- Chose option (b) for sessions and asked the conflict to be highlighted at
+  Step 4; approved the currency + hex fixes; kept the shipping banner as-is.

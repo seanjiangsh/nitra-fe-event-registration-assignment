@@ -12,7 +12,7 @@
  * @property {string} [size]
  */
 import BaseCard from "../ui/BaseCard.vue";
-import { formatCompact } from "../../composables/useCurrency.js";
+import { format } from "../../composables/useCurrency.js";
 
 defineProps({
   item: {
@@ -45,7 +45,7 @@ function onSizeChange(/** @type {Event} */ e) {
         item.name
       }}</span>
       <span class="text-subtitle1 text-brand-emphasis shrink-0">{{
-        formatCompact(item.price)
+        format(item.price)
       }}</span>
     </div>
 
