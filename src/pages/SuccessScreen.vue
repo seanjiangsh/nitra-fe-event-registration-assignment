@@ -45,10 +45,15 @@ function backToHome() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-surface-l0">
-    <!-- Same brand header as the wizard shell -->
-    <header class="shrink-0 bg-surface-l0 border-b border-solid border-neutral-muted">
-      <div class="mx-auto max-w-[1200px] w-full px-6 py-4">
+  <!-- overflow-x-hidden clips the brand row's `ml-12 w-full` right-edge overflow
+       (the wizard shell clips it via overflow-hidden); vertical stays natural. -->
+  <div class="min-h-screen flex flex-col overflow-x-hidden bg-surface-l0">
+    <!-- Same brand header as the wizard shell (brand row must match WizardLayout
+         so the logo keeps the same height + position across routes). -->
+    <header
+      class="shrink-0 bg-surface-l0 border-b border-t-0 border-x-0 border-solid divider-default"
+    >
+      <div class="ml-12 w-full">
         <AppBrand />
       </div>
     </header>
